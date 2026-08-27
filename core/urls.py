@@ -12,7 +12,7 @@ urlpatterns = [
 ]
 
 # Em DEBUG, o helper static() basta. Em produção (Render), servir media
-# explicitamente — disco efémero; adequado só para demo sem S3/Cloudinary.
+# explicitamente — ficheiros criados no start_render.sh (disco de runtime).
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
@@ -20,6 +20,6 @@ else:
         re_path(
             r"^media/(?P<path>.*)$",
             serve,
-            {"document_root": settings.MEDIA_ROOT},
+            {"document_root": str(settings.MEDIA_ROOT)},
         ),
     ]

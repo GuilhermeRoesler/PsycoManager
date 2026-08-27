@@ -10,7 +10,7 @@ services:
     name: psycomanager
     runtime: python
     buildCommand: './build.sh'
-    startCommand: 'gunicorn core.wsgi:application'
+    startCommand: 'python manage.py carregar_demo --limpar && gunicorn core.wsgi:application'
     envVars:
       - key: DATABASE_URL
         fromDatabase:

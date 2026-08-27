@@ -158,15 +158,29 @@ def _iniciais(nome: str) -> str:
     return partes[0][:2].upper()
 
 
+def _fonte_avatar(tamanho: int = 96):
+    candidatos = (
+        "arial.ttf",
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+    )
+    for caminho in candidatos:
+        try:
+            return ImageFont.truetype(caminho, tamanho)
+        except OSError:
+            continue
+    # Fallback portátil (Render/Linux sem Arial) — Pillow >= 10.1
+    return ImageFont.load_default(size=tamanho)
+
+
 def _gerar_foto(nome: str, indice: int) -> ContentFile:
     cor = CORES_AVATAR[indice % len(CORES_AVATAR)]
     img = Image.new("RGB", (256, 256), cor)
     draw = ImageDraw.Draw(img)
     texto = _iniciais(nome)
-    try:
-        font = ImageFont.truetype("arial.ttf", 96)
-    except OSError:
-        font = ImageFont.load_default()
+    font = _fonte_avatar(96)
 
     bbox = draw.textbbox((0, 0), texto, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
