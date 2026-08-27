@@ -177,6 +177,6 @@ if not DEBUG:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MESSAGE_TAGS = {
-    constants.SUCCESS: 'bg-green-50 text-green-700',
-    constants.ERROR: 'bg-red-50 text-red-700',
+    constants.SUCCESS: 'bg-green-50 text-green-800 ring-1 ring-inset ring-green-600/15',
+    constants.ERROR: 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/15',
 }

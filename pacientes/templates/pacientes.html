@@ -1,101 +1,102 @@
 {% extends "base.html" %}
 
+{% block title %}Pacientes — PsycoManager{% endblock %}
+
 {% block 'body' %}
-<div class="relative isolate">
-    <svg class="pointer-events-none -z-50  absolute inset-x-0 top-0 h-[64rem] w-full stroke-gray-200 [mask-image:radial-gradient(32rem_32rem_at_center,white,transparent)]"
-        aria-hidden="true">
-        <defs>
-            <pattern id="1f932ae7-37de-4c0a-a8b0-a6e3b4d44b84" width="200" height="200" x="50%" y="-1"
-                patternUnits="userSpaceOnUse">
-                <path d="M.5 200V.5H200" fill="none" />
-            </pattern>
-        </defs>
-        <svg x="50%" y="-1" class="overflow-visible fill-gray-50">
-            <path d="M-200 0h201v201h-201Z M600 0h201v201h-201Z M-400 600h201v201h-201Z M200 800h201v201h-201Z"
-                stroke-width="0" />
-        </svg>
-        <rect width="100%" height="100%" stroke-width="0" fill="url(#1f932ae7-37de-4c0a-a8b0-a6e3b4d44b84)" />
-    </svg>
-    <div class="pointer-events-none absolute left-1/2 right-0 top-0 -z-10 -ml-24 transform-gpu overflow-hidden blur-3xl lg:ml-24 xl:ml-48"
-        aria-hidden="true">
-        <div class="aspect-[801/1036] w-[50.0625rem] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30"
-            style="clip-path: polygon(63.1% 29.5%, 100% 17.1%, 76.6% 3%, 48.4% 0%, 44.6% 4.7%, 54.5% 25.3%, 59.8% 49%, 55.2% 57.8%, 44.4% 57.2%, 27.8% 47.9%, 35.1% 81.5%, 0% 97.7%, 39.2% 100%, 35.2% 81.4%, 97.2% 52.8%, 63.1% 29.5%)">
-        </div>
+<div class="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
+    <div class="mb-10 max-w-2xl">
+        <p class="text-sm font-semibold uppercase tracking-wider text-brand-600">Gestão clínica</p>
+        <h1 class="font-display mt-2 text-4xl font-semibold tracking-tight text-ink sm:text-5xl">Pacientes</h1>
+        <p class="mt-3 text-base text-muted">Cadastre novos pacientes e aceda ao histórico de sessões.</p>
     </div>
-    <div class="py-24 sm:py-32">
-        <div class="mx-auto grid max-w-7xl gap-20 px-6 lg:px-8 xl:grid-cols-3">
-            <div class="max-w-xl">
-                <h2 class="text-pretty text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">Cadastre
-                    pacientes</h2>
+
+    <div class="grid gap-10 xl:grid-cols-3">
+        <section class="xl:col-span-1">
+            <div class="rounded-2xl border border-line bg-white/80 p-6 shadow-sm shadow-brand-600/5">
+                <h2 class="font-display text-xl font-semibold text-ink">Novo paciente</h2>
+                <p class="mt-1 text-sm text-muted">Preencha os dados básicos para iniciar o acompanhamento.</p>
+
                 {% if messages %}
-                {% for message in messages %}
-                <div class="rounded-md {{message.tags}} p-4">
-                    <div class="flex">
-                        <div class="ml-3">
-                            {{message}}
-                        </div>
+                <div class="mt-4 space-y-2">
+                    {% for message in messages %}
+                    <div class="rounded-lg {{ message.tags }} px-3 py-2.5 text-sm" role="alert">
+                        {{ message }}
                     </div>
+                    {% endfor %}
                 </div>
-                <br>
-                {% endfor %}
                 {% endif %}
-                <form action="{% url 'pacientes' %}" method="POST" enctype="multipart/form-data"> {% csrf_token %}
-                    <label for="nome" class="block mt-2 text-sm/6 font-medium text-gray-600">Nome</label>
-                    <div class="mt-2">
-                        <input type="text" name="nome" id="nome" autocomplete="given-name"
-                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+
+                <form action="{% url 'pacientes' %}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label for="nome" class="block text-sm font-medium text-muted">Nome</label>
+                        <input type="text" name="nome" id="nome" required autocomplete="name" class="input-field mt-1.5">
                     </div>
-                    <label for="email" class="block mt-2 text-sm/6 font-medium text-gray-600">Email</label>
-                    <div class="mt-2">
-                        <input type="email" name="email" id="email"
-                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-muted">Email</label>
+                        <input type="email" name="email" id="email" required autocomplete="email" class="input-field mt-1.5">
                     </div>
-                    <label for="telefone" class="block mt-2 text-sm/6 font-medium text-gray-600">Telefone</label>
-                    <div class="mt-2">
-                        <input type="text" name="telefone" id="telefone"
-                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                    <div>
+                        <label for="telefone" class="block text-sm font-medium text-muted">Telefone</label>
+                        <input type="text" name="telefone" id="telefone" autocomplete="tel" class="input-field mt-1.5">
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label for="telefone" class="block mt-2 text-sm/6 font-medium text-gray-600">Queixa</label>
-                            <div class="mt-2">
-                                <select name="queixa"
-                                    class="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                    {% for queixa in queixas %}
-                                    <option value="">{{queixa.1}}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            <label for="queixa" class="block text-sm font-medium text-muted">Queixa</label>
+                            <select name="queixa" id="queixa" required class="input-field mt-1.5">
+                                <option value="" disabled selected>Selecionar</option>
+                                {% for queixa in queixas %}
+                                <option value="{{ queixa.0 }}">{{ queixa.1 }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div>
-                            <label for="foto" class="block mt-2 text-sm/6 font-medium text-gray-600">Foto</label>
-                            <div class="mt-2">
-                                <input type="file" required name="foto" id="foto"
-                                    class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                            </div>
+                            <label for="foto" class="block text-sm font-medium text-muted">Foto</label>
+                            <input type="file" required name="foto" id="foto" accept="image/*" class="input-field mt-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-brand-700">
                         </div>
                     </div>
-                    <button type="submit"
-                        class="inline-flex justify-center rounded-md bg-indigo-600 mt-4 cursor-pointer px-3 py-2 w-full text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Cadastrar
-                        paciente</button>
+                    <button type="submit" class="btn-primary mt-2 w-full cursor-pointer">Cadastrar paciente</button>
                 </form>
             </div>
-            <ul role="list" class="grid gap-x-8 gap-y-12 sm:grid-cols-2 sm:gap-y-16 xl:col-span-2">
+        </section>
+
+        <section class="xl:col-span-2">
+            {% if pacientes %}
+            <ul role="list" class="grid gap-4 sm:grid-cols-2">
                 {% for paciente in pacientes %}
                 <li>
-                    <div class="flex items-center gap-x-6">
-                        <img class="size-16 rounded-full" src="{{paciente.foto.url}}" alt="">
-                        <div>
-                            <a href="{% url 'paciente_view' paciente.id %}"
-                                class="text-base/7 font-semibold tracking-tight text-gray-900">{{paciente.nome}}</a>
-                            <p class="text-sm/6 font-semibold text-indigo-600">{{paciente.queixa}}</p>
+                    <a href="{% url 'paciente_view' paciente.id %}"
+                        class="group flex items-center gap-4 rounded-2xl border border-line bg-white/80 p-4 shadow-sm shadow-brand-600/5 transition hover:border-brand-200 hover:bg-white hover:shadow-md hover:shadow-brand-600/10">
+                        <img class="size-14 rounded-full object-cover ring-2 ring-brand-100" src="{{ paciente.foto.url }}" alt="Foto de {{ paciente.nome }}">
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-base font-semibold text-ink group-hover:text-brand-700">{{ paciente.nome }}</p>
+                            <p class="mt-0.5 text-sm text-brand-600">{{ paciente.get_queixa_display }}</p>
+                            <p class="mt-1 text-xs text-muted">
+                                {% if paciente.pagamento_em_dia %}
+                                <span class="inline-flex items-center gap-1 text-brand-700">
+                                    <span class="size-1.5 rounded-full bg-brand-500"></span> Pagamento em dia
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 text-red-600">
+                                    <span class="size-1.5 rounded-full bg-red-500"></span> Pagamento pendente
+                                </span>
+                                {% endif %}
+                            </p>
                         </div>
-                    </div>
+                        <svg class="size-5 shrink-0 text-line transition group-hover:text-brand-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
                 </li>
                 {% endfor %}
             </ul>
-        </div>
+            {% else %}
+            <div class="flex h-full min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-line bg-white/50 px-6 py-16 text-center">
+                <p class="font-display text-lg font-semibold text-ink">Nenhum paciente ainda</p>
+                <p class="mt-2 max-w-sm text-sm text-muted">Use o formulário ao lado para cadastrar o primeiro paciente.</p>
+            </div>
+            {% endif %}
+        </section>
     </div>
 </div>
-
 {% endblock 'body' %}
