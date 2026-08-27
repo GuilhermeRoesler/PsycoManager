@@ -1,6 +1,7 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.views.generic import RedirectView
+from django.views.static import serve
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -9,4 +10,17 @@ urlpatterns = [
     path('', RedirectView.as_view(pattern_name='pacientes', permanent=False)),
     path('admin/', admin.site.urls),
     path('pacientes/', include('pacientes.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Em DEBUG, o helper static() basta. Em produção (Render), servir media
+# explicitamente — disco efémero; adequado só para demo sem S3/Cloudinary.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    urlpatterns += [
+        re_path(
+            r'^media/(?P<path>.*)$',
+            serve,
+            {'document_root': settings.MEDIA_ROOT},
+        ),
+    ]

@@ -1,0 +1,28 @@
+databases:
+  - name: psycomanager-db
+    plan: free
+    databaseName: psycomanager
+    user: psycomanager
+
+services:
+  - type: web
+    plan: free
+    name: psycomanager
+    runtime: python
+    buildCommand: './build.sh'
+    startCommand: 'gunicorn core.wsgi:application'
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: psycomanager-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: 'False'
+      - key: ALLOWED_HOSTS
+        value: '.onrender.com'
+      - key: PYTHON_VERSION
+        value: '3.12.8'
+      - key: WEB_CONCURRENCY
+        value: '2'

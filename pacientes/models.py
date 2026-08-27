@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -49,7 +50,8 @@ class Consultas(models.Model):
     
     @property
     def link_publico(self):
-        return f"http://127.0.0.1:8000{reverse('consulta_publica', kwargs={'id': self.id})}"
+        path = reverse('consulta_publica', kwargs={'id': self.id})
+        return f'{settings.PUBLIC_BASE_URL}{path}'
     
     @property
     def views(self):
