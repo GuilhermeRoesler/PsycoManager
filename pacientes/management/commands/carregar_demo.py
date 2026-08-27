@@ -208,16 +208,13 @@ class Command(BaseCommand):
 
         if Pacientes.objects.exists() and not options["limpar"]:
             self.stdout.write(
-                self.style.WARNING(
-                    "Já existem pacientes. Use --limpar para recriar os dados demo."
-                )
+                self.style.WARNING("Já existem pacientes. Use --limpar para recriar os dados demo.")
             )
             return
 
         self.stdout.write("A criar tarefas...")
         tarefas = [
-            Tarefas.objects.create(tarefa=t, instrucoes=i, frequencia=f)
-            for t, i, f in TAREFAS_DEMO
+            Tarefas.objects.create(tarefa=t, instrucoes=i, frequencia=f) for t, i, f in TAREFAS_DEMO
         ]
 
         self.stdout.write("A criar pacientes...")
@@ -271,10 +268,7 @@ class Command(BaseCommand):
                 else:
                     n_views = rng.randint(0, 2)
 
-                ips = {
-                    f"192.168.{rng.randint(0, 3)}.{rng.randint(1, 254)}"
-                    for _ in range(n_views)
-                }
+                ips = {f"192.168.{rng.randint(0, 3)}.{rng.randint(1, 254)}" for _ in range(n_views)}
                 for ip in ips:
                     Visualizacoes.objects.create(consulta=consulta, ip=ip)
                     total_views += 1
@@ -283,9 +277,7 @@ class Command(BaseCommand):
             User = get_user_model()
             if not User.objects.filter(username="admin").exists():
                 User.objects.create_superuser("admin", "admin@psycomanager.local", "admin123")
-                self.stdout.write(
-                    self.style.SUCCESS("Superuser criado: admin / admin123")
-                )
+                self.stdout.write(self.style.SUCCESS("Superuser criado: admin / admin123"))
             else:
                 self.stdout.write("Superuser 'admin' já existia — mantido.")
 
