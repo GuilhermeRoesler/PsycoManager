@@ -1,0 +1,24 @@
+---
+description: Especificações do PsycoManager — ler a skill antes de alterar o projeto
+alwaysApply: true
+---
+
+# PsycoManager
+
+App Django para psicólogos gerirem pacientes, consultas e tarefas terapêuticas.
+
+## Antes de implementar
+
+Lê e segue a skill do projeto:
+
+`.cursor/skills/psycomanager/SKILL.md`
+
+## Resumo rápido
+
+- **Stack:** Django 5 + SQLite + templates + Tailwind CDN
+- **App principal:** `pacientes/` (models, views, templates)
+- **Sem API REST / SPA** — views function-based e HTML forms
+- **Domínio:** `Pacientes`, `Consultas`, `Tarefas`, `Visualizacoes`
+- **Regra chave:** link público da consulta só se `pagamento_em_dia`
+
+Não inventes camadas (services, DRF, React) sem o utilizador pedir. Mantém padrões e nomes em português já usados no código.
