@@ -2,101 +2,234 @@
 
 {% block title %}Pacientes — PsycoManager{% endblock %}
 
+{% block header_actions %}
+<button type="button" id="btn-abrir-cadastro" class="btn-primary cursor-pointer">
+    <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+    </svg>
+    Novo paciente
+</button>
+{% endblock %}
+
 {% block 'body' %}
-<div class="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
-    <div class="mb-10 max-w-2xl">
-        <p class="text-sm font-semibold uppercase tracking-wider text-brand-600">Gestão clínica</p>
-        <h1 class="font-display mt-2 text-4xl font-semibold tracking-tight text-ink sm:text-5xl">Pacientes</h1>
-        <p class="mt-3 text-base text-muted">Cadastre novos pacientes e aceda ao histórico de sessões.</p>
-    </div>
-
-    <div class="grid gap-10 xl:grid-cols-3">
-        <section class="xl:col-span-1">
-            <div class="rounded-2xl border border-line bg-white/80 p-6 shadow-sm shadow-brand-600/5">
-                <h2 class="font-display text-xl font-semibold text-ink">Novo paciente</h2>
-                <p class="mt-1 text-sm text-muted">Preencha os dados básicos para iniciar o acompanhamento.</p>
-
-                {% if messages %}
-                <div class="mt-4 space-y-2">
-                    {% for message in messages %}
-                    <div class="rounded-lg {{ message.tags }} px-3 py-2.5 text-sm" role="alert">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                </div>
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+    <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold tracking-tight text-ink">Pacientes</h1>
+            <p class="mt-1 text-sm text-muted">
+                {% if pacientes %}
+                {{ pacientes|length }} {% if pacientes|length == 1 %}paciente{% else %}pacientes{% endif %}
+                {% else %}
+                Nenhum paciente cadastrado
                 {% endif %}
-
-                <form action="{% url 'pacientes' %}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-4">
-                    {% csrf_token %}
-                    <div>
-                        <label for="nome" class="block text-sm font-medium text-muted">Nome</label>
-                        <input type="text" name="nome" id="nome" required autocomplete="name" class="input-field mt-1.5">
-                    </div>
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-muted">Email</label>
-                        <input type="email" name="email" id="email" required autocomplete="email" class="input-field mt-1.5">
-                    </div>
-                    <div>
-                        <label for="telefone" class="block text-sm font-medium text-muted">Telefone</label>
-                        <input type="text" name="telefone" id="telefone" autocomplete="tel" class="input-field mt-1.5">
-                    </div>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                            <label for="queixa" class="block text-sm font-medium text-muted">Queixa</label>
-                            <select name="queixa" id="queixa" required class="input-field mt-1.5">
-                                <option value="" disabled selected>Selecionar</option>
-                                {% for queixa in queixas %}
-                                <option value="{{ queixa.0 }}">{{ queixa.1 }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div>
-                            <label for="foto" class="block text-sm font-medium text-muted">Foto</label>
-                            <input type="file" required name="foto" id="foto" accept="image/*" class="input-field mt-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-brand-700">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary mt-2 w-full cursor-pointer">Cadastrar paciente</button>
-                </form>
-            </div>
-        </section>
-
-        <section class="xl:col-span-2">
-            {% if pacientes %}
-            <ul role="list" class="grid gap-4 sm:grid-cols-2">
-                {% for paciente in pacientes %}
-                <li>
-                    <a href="{% url 'paciente_view' paciente.id %}"
-                        class="group flex items-center gap-4 rounded-2xl border border-line bg-white/80 p-4 shadow-sm shadow-brand-600/5 transition hover:border-brand-200 hover:bg-white hover:shadow-md hover:shadow-brand-600/10">
-                        <img class="size-14 rounded-full object-cover ring-2 ring-brand-100" src="{{ paciente.foto.url }}" alt="Foto de {{ paciente.nome }}">
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-base font-semibold text-ink group-hover:text-brand-700">{{ paciente.nome }}</p>
-                            <p class="mt-0.5 text-sm text-brand-600">{{ paciente.get_queixa_display }}</p>
-                            <p class="mt-1 text-xs text-muted">
-                                {% if paciente.pagamento_em_dia %}
-                                <span class="inline-flex items-center gap-1 text-brand-700">
-                                    <span class="size-1.5 rounded-full bg-brand-500"></span> Pagamento em dia
-                                </span>
-                                {% else %}
-                                <span class="inline-flex items-center gap-1 text-red-600">
-                                    <span class="size-1.5 rounded-full bg-red-500"></span> Pagamento pendente
-                                </span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        <svg class="size-5 shrink-0 text-line transition group-hover:text-brand-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <div class="flex h-full min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-line bg-white/50 px-6 py-16 text-center">
-                <p class="font-display text-lg font-semibold text-ink">Nenhum paciente ainda</p>
-                <p class="mt-2 max-w-sm text-sm text-muted">Use o formulário ao lado para cadastrar o primeiro paciente.</p>
-            </div>
-            {% endif %}
-        </section>
+            </p>
+        </div>
     </div>
+
+    {% if messages %}
+    <div class="mt-6 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg {{ message.tags }} px-3.5 py-2.5 text-sm" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if pacientes %}
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="relative flex-1">
+            <svg class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+            </svg>
+            <input type="search" id="filtro-busca" placeholder="Buscar por nome, email ou queixa…" class="input-field pl-10" autocomplete="off">
+        </div>
+        <select id="filtro-pagamento" class="input-field sm:w-44">
+            <option value="">Pagamento: todos</option>
+            <option value="em_dia">Em dia</option>
+            <option value="pendente">Pendente</option>
+        </select>
+        <select id="filtro-queixa" class="input-field sm:w-48">
+            <option value="">Queixa: todas</option>
+            {% for queixa in queixas %}
+            <option value="{{ queixa.1 }}">{{ queixa.1 }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mt-4 overflow-hidden rounded-xl bg-white ring-1 ring-line">
+        <ul role="list" id="lista-pacientes" class="divide-y divide-line">
+            {% for paciente in pacientes %}
+            <li class="paciente-item"
+                data-nome="{{ paciente.nome|lower }}"
+                data-email="{{ paciente.email|lower }}"
+                data-queixa="{{ paciente.get_queixa_display }}"
+                data-pagamento="{% if paciente.pagamento_em_dia %}em_dia{% else %}pendente{% endif %}">
+                <a href="{% url 'paciente_view' paciente.id %}"
+                    class="flex items-center gap-3 px-4 py-3 transition hover:bg-surface/80 sm:gap-4 sm:px-5">
+                    <img class="size-10 shrink-0 rounded-full object-cover ring-1 ring-line" src="{{ paciente.foto.url }}" alt="">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                            <p class="truncate text-sm font-semibold text-ink">{{ paciente.nome }}</p>
+                            <span class="badge bg-surface text-muted ring-1 ring-inset ring-line">{{ paciente.get_queixa_display }}</span>
+                        </div>
+                        <p class="mt-0.5 truncate text-xs text-muted">{{ paciente.email }}{% if paciente.telefone %} · {{ paciente.telefone }}{% endif %}</p>
+                    </div>
+                    <div class="hidden shrink-0 sm:block">
+                        {% if paciente.pagamento_em_dia %}
+                        <span class="badge bg-brand-50 text-brand-700">
+                            <span class="size-1.5 rounded-full bg-brand-500"></span>
+                            Em dia
+                        </span>
+                        {% else %}
+                        <span class="badge bg-red-50 text-red-700">
+                            <span class="size-1.5 rounded-full bg-red-500"></span>
+                            Pendente
+                        </span>
+                        {% endif %}
+                    </div>
+                    <svg class="size-4 shrink-0 text-line" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        <p id="lista-vazia-filtro" class="hidden px-5 py-12 text-center text-sm text-muted">Nenhum paciente corresponde aos filtros.</p>
+    </div>
+    {% else %}
+    <div class="mt-10 flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div class="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+            <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+            </svg>
+        </div>
+        <h2 class="mt-4 text-base font-semibold text-ink">Comece pelo primeiro paciente</h2>
+        <p class="mt-1 max-w-sm text-sm text-muted">Cadastre um paciente para registar sessões, humor e exercícios.</p>
+        <button type="button" id="btn-abrir-cadastro-empty" class="btn-primary mt-6 cursor-pointer">Novo paciente</button>
+    </div>
+    {% endif %}
 </div>
+
+{# Drawer de cadastro #}
+<div id="drawer-overlay" class="fixed inset-0 z-50 hidden bg-ink/30 backdrop-blur-[2px]" aria-hidden="true"></div>
+<aside id="drawer-cadastro" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" role="dialog" aria-labelledby="drawer-titulo" aria-modal="true">
+    <div class="flex items-center justify-between border-b border-line px-5 py-4">
+        <div>
+            <h2 id="drawer-titulo" class="text-base font-semibold text-ink">Novo paciente</h2>
+            <p class="text-xs text-muted">Dados básicos para iniciar o acompanhamento</p>
+        </div>
+        <button type="button" id="btn-fechar-cadastro" class="btn-ghost -mr-2 cursor-pointer" aria-label="Fechar">
+            <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+            </svg>
+        </button>
+    </div>
+    <form action="{% url 'pacientes' %}" method="POST" enctype="multipart/form-data" class="flex flex-1 flex-col overflow-y-auto">
+        {% csrf_token %}
+        <div class="flex-1 space-y-4 px-5 py-5">
+            <div>
+                <label for="nome" class="block text-sm font-medium text-ink">Nome</label>
+                <input type="text" name="nome" id="nome" required autocomplete="name" class="input-field mt-1.5">
+            </div>
+            <div>
+                <label for="email" class="block text-sm font-medium text-ink">Email</label>
+                <input type="email" name="email" id="email" required autocomplete="email" class="input-field mt-1.5">
+            </div>
+            <div>
+                <label for="telefone" class="block text-sm font-medium text-ink">Telefone</label>
+                <input type="text" name="telefone" id="telefone" autocomplete="tel" class="input-field mt-1.5">
+            </div>
+            <div>
+                <label for="queixa" class="block text-sm font-medium text-ink">Queixa</label>
+                <select name="queixa" id="queixa" required class="input-field mt-1.5">
+                    <option value="" disabled selected>Selecionar</option>
+                    {% for queixa in queixas %}
+                    <option value="{{ queixa.0 }}">{{ queixa.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="foto" class="block text-sm font-medium text-ink">Foto</label>
+                <div class="mt-1.5 rounded-lg bg-surface px-3 py-3 ring-1 ring-inset ring-line">
+                    <input type="file" required name="foto" id="foto" accept="image/*" class="file-field">
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-line px-5 py-4">
+            <button type="submit" class="btn-primary w-full cursor-pointer">Cadastrar paciente</button>
+        </div>
+    </form>
+</aside>
+
+<script>
+(function () {
+    const drawer = document.getElementById('drawer-cadastro');
+    const overlay = document.getElementById('drawer-overlay');
+    const openers = [
+        document.getElementById('btn-abrir-cadastro'),
+        document.getElementById('btn-abrir-cadastro-empty'),
+    ].filter(Boolean);
+    const closer = document.getElementById('btn-fechar-cadastro');
+
+    function openDrawer() {
+        overlay.classList.remove('hidden');
+        drawer.classList.remove('translate-x-full');
+        document.body.style.overflow = 'hidden';
+        const nome = document.getElementById('nome');
+        if (nome) setTimeout(() => nome.focus(), 280);
+    }
+
+    function closeDrawer() {
+        overlay.classList.add('hidden');
+        drawer.classList.add('translate-x-full');
+        document.body.style.overflow = '';
+    }
+
+    openers.forEach((btn) => btn.addEventListener('click', openDrawer));
+    if (closer) closer.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDrawer();
+    });
+
+    {% if messages %}
+    openDrawer();
+    {% endif %}
+
+    const busca = document.getElementById('filtro-busca');
+    const filtroPag = document.getElementById('filtro-pagamento');
+    const filtroQueixa = document.getElementById('filtro-queixa');
+    const items = document.querySelectorAll('.paciente-item');
+    const emptyMsg = document.getElementById('lista-vazia-filtro');
+
+    function aplicarFiltros() {
+        if (!items.length) return;
+        const q = (busca?.value || '').trim().toLowerCase();
+        const pag = filtroPag?.value || '';
+        const queixa = filtroQueixa?.value || '';
+        let visiveis = 0;
+
+        items.forEach((el) => {
+            const nome = el.dataset.nome || '';
+            const email = el.dataset.email || '';
+            const qxa = el.dataset.queixa || '';
+            const pagamento = el.dataset.pagamento || '';
+            const matchBusca = !q || nome.includes(q) || email.includes(q) || qxa.toLowerCase().includes(q);
+            const matchPag = !pag || pagamento === pag;
+            const matchQueixa = !queixa || qxa === queixa;
+            const show = matchBusca && matchPag && matchQueixa;
+            el.classList.toggle('hidden', !show);
+            if (show) visiveis += 1;
+        });
+
+        if (emptyMsg) emptyMsg.classList.toggle('hidden', visiveis > 0);
+    }
+
+    [busca, filtroPag, filtroQueixa].forEach((el) => {
+        if (el) el.addEventListener('input', aplicarFiltros);
+        if (el) el.addEventListener('change', aplicarFiltros);
+    });
+})();
+</script>
 {% endblock 'body' %}

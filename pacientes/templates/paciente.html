@@ -7,120 +7,155 @@
 {% endblock 'head' %}
 
 {% block 'body' %}
-<div class="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-12">
-    <a href="{% url 'pacientes' %}" class="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition hover:text-brand-700">
+<div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+    <a href="{% url 'pacientes' %}" class="btn-ghost -ml-3 cursor-pointer">
         <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
         </svg>
-        Voltar aos pacientes
+        Pacientes
     </a>
 
-    <div class="mt-6 flex flex-col gap-6 rounded-2xl border border-line bg-white/80 p-6 shadow-sm shadow-brand-600/5 sm:flex-row sm:items-start sm:justify-between">
+    {# Perfil #}
+    <div class="mt-4 flex flex-col gap-5 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div class="flex items-start gap-4">
-            <img class="size-20 rounded-full object-cover ring-4 ring-brand-100" src="{{ paciente.foto.url }}" alt="Foto de {{ paciente.nome }}">
-            <div>
-                <h1 class="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{{ paciente.nome }}</h1>
+            <img class="size-16 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm sm:size-[4.5rem]" src="{{ paciente.foto.url }}" alt="Foto de {{ paciente.nome }}">
+            <div class="min-w-0">
+                <h1 class="text-2xl font-semibold tracking-tight text-ink">{{ paciente.nome }}</h1>
                 <p class="mt-1 text-sm text-muted">{{ paciente.get_queixa_display }} · {{ paciente.email }}{% if paciente.telefone %} · {{ paciente.telefone }}{% endif %}</p>
                 <div class="mt-3 flex flex-wrap gap-2">
-                    <span class="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-600/15">
+                    <span class="badge bg-white text-ink ring-1 ring-inset ring-line">
                         {{ total_consultas }} {% if total_consultas == 1 %}sessão{% else %}sessões{% endif %}
                     </span>
                     {% if paciente.pagamento_em_dia %}
-                    <span class="inline-flex items-center rounded-md bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/15">Pagamento em dia</span>
+                    <span class="badge bg-brand-50 text-brand-700">
+                        <span class="size-1.5 rounded-full bg-brand-500"></span>
+                        Pagamento em dia
+                    </span>
                     {% else %}
-                    <span class="inline-flex items-center rounded-md bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/15">Pagamento pendente</span>
+                    <span class="badge bg-red-50 text-red-700">
+                        <span class="size-1.5 rounded-full bg-red-500"></span>
+                        Pagamento pendente
+                    </span>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <form action="{% url 'atualizar_paciente' paciente.id %}" method="POST" class="flex w-full flex-col gap-2 sm:w-auto sm:min-w-48">
+        <form action="{% url 'atualizar_paciente' paciente.id %}" method="POST" class="flex items-end gap-2 sm:shrink-0">
             {% csrf_token %}
-            <label for="pagamento_em_dia" class="text-sm font-medium text-muted">Estado do pagamento</label>
-            <select name="pagamento_em_dia" id="pagamento_em_dia" class="input-field">
-                <option value="ativo" {% if paciente.pagamento_em_dia %}selected{% endif %}>Ativo</option>
-                <option value="inativo" {% if not paciente.pagamento_em_dia %}selected{% endif %}>Inativo</option>
-            </select>
-            <button type="submit" class="btn-primary cursor-pointer">Atualizar</button>
+            <div>
+                <label for="pagamento_em_dia" class="block text-xs font-medium text-muted">Pagamento</label>
+                <select name="pagamento_em_dia" id="pagamento_em_dia" class="input-field mt-1 w-36">
+                    <option value="ativo" {% if paciente.pagamento_em_dia %}selected{% endif %}>Em dia</option>
+                    <option value="inativo" {% if not paciente.pagamento_em_dia %}selected{% endif %}>Pendente</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-secondary cursor-pointer">Atualizar</button>
         </form>
     </div>
 
-    <div class="mt-8 grid gap-8 lg:grid-cols-5">
-        <section class="lg:col-span-2">
-            <div class="rounded-2xl border border-line bg-white/80 p-6 shadow-sm shadow-brand-600/5">
-                <h2 class="font-display text-2xl font-semibold text-ink">Registrar consulta</h2>
-                <p class="mt-1 text-sm text-muted">Humor, notas, vídeo e exercícios da sessão.</p>
+    {% if messages %}
+    <div class="mt-5 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg {{ message.tags }} px-3.5 py-2.5 text-sm" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-                {% if messages %}
-                <div class="mt-4 space-y-2">
-                    {% for message in messages %}
-                    <div class="rounded-lg {{ message.tags }} px-3 py-2.5 text-sm" role="alert">
-                        {{ message }}
+    <div class="mt-8 grid gap-10 lg:grid-cols-12 lg:gap-12">
+        {# Formulário consulta #}
+        <section class="lg:col-span-5">
+            <h2 class="text-base font-semibold text-ink">Registrar consulta</h2>
+            <p class="mt-0.5 text-sm text-muted">Humor, notas, vídeo e exercícios da sessão.</p>
+
+            <form action="{% url 'paciente_view' paciente.id %}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-5">
+                {% csrf_token %}
+
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-medium text-ink">Humor do paciente</label>
+                        <span id="humor-valor" class="text-sm font-semibold tabular-nums text-brand-700">3</span>
                     </div>
-                    {% endfor %}
+                    <input type="range" name="humor" id="humor" min="1" max="5" value="3" class="sr-only" aria-valuemin="1" aria-valuemax="5" aria-valuenow="3">
+                    <div class="mt-3 grid grid-cols-5 gap-2" role="group" aria-label="Escala de humor">
+                        {% for n in "12345" %}
+                        <button type="button" data-humor="{{ n }}" class="humor-btn flex h-11 items-center justify-center rounded-lg text-sm font-semibold ring-1 ring-inset transition">
+                            {{ n }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-1.5 flex justify-between text-xs text-muted">
+                        <span>Baixo</span>
+                        <span>Alto</span>
+                    </div>
                 </div>
-                {% endif %}
 
-                <form action="{% url 'paciente_view' paciente.id %}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-4">
-                    {% csrf_token %}
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <label for="humor" class="block text-sm font-medium text-muted">Humor do paciente</label>
-                            <span id="humor-valor" class="text-sm font-semibold text-brand-700">1</span>
-                        </div>
-                        <input type="range" name="humor" id="humor" min="1" max="5" value="3" class="mt-2 w-full accent-brand-600">
-                        <div class="mt-1 flex justify-between text-xs text-muted">
-                            <span>Baixo</span>
-                            <span>Alto</span>
-                        </div>
+                <div>
+                    <label for="registro_geral" class="block text-sm font-medium text-ink">Registro geral</label>
+                    <textarea name="registro_geral" id="registro_geral" rows="4" placeholder="Notas clínicas da sessão…" class="input-field mt-1.5"></textarea>
+                </div>
+
+                <div>
+                    <label for="video" class="block text-sm font-medium text-ink">Gravação</label>
+                    <div class="mt-1.5 rounded-lg bg-white px-3 py-3 ring-1 ring-inset ring-line">
+                        <input type="file" required name="video" id="video" accept="video/*" class="file-field">
                     </div>
-                    <div>
-                        <label for="registro_geral" class="block text-sm font-medium text-muted">Registro geral</label>
-                        <textarea name="registro_geral" id="registro_geral" rows="4" class="input-field mt-1.5"></textarea>
-                    </div>
-                    <div>
-                        <label for="video" class="block text-sm font-medium text-muted">Gravação</label>
-                        <input type="file" required name="video" id="video" accept="video/*" class="input-field mt-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-brand-700">
-                    </div>
-                    <div>
-                        <label for="tarefas" class="block text-sm font-medium text-muted">Exercícios</label>
-                        <select name="tarefas" id="tarefas" multiple size="5" class="input-field mt-1.5">
-                            {% for tarefa in tarefas %}
-                            <option value="{{ tarefa.id }}">{{ tarefa }}</option>
-                            {% endfor %}
-                        </select>
-                        <p class="mt-1 text-xs text-muted">Segure Ctrl (ou Cmd) para selecionar vários.</p>
-                    </div>
-                    <button type="submit" class="btn-primary w-full cursor-pointer">Registrar consulta</button>
-                </form>
-            </div>
+                </div>
+
+                <div>
+                    <span class="block text-sm font-medium text-ink">Exercícios</span>
+                    <p class="mt-0.5 text-xs text-muted">Selecione as tarefas para esta sessão.</p>
+                    {% if tarefas %}
+                    <ul class="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-lg bg-white p-2 ring-1 ring-inset ring-line">
+                        {% for tarefa in tarefas %}
+                        <li>
+                            <label class="flex cursor-pointer items-start gap-3 rounded-md px-2 py-2 transition hover:bg-surface">
+                                <input type="checkbox" name="tarefas" value="{{ tarefa.id }}" class="mt-0.5 size-4 rounded border-line text-brand-600 focus:ring-brand-500">
+                                <span class="min-w-0">
+                                    <span class="block text-sm font-medium text-ink">{{ tarefa.tarefa }}</span>
+                                    <span class="block text-xs text-muted">{{ tarefa.get_frequencia_display }}</span>
+                                </span>
+                            </label>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="mt-2 rounded-lg bg-surface px-3 py-4 text-center text-xs text-muted ring-1 ring-inset ring-line">
+                        Nenhuma tarefa no catálogo. Crie-as no admin.
+                    </p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn-primary w-full cursor-pointer">Registrar consulta</button>
+            </form>
         </section>
 
-        <section class="lg:col-span-3 space-y-8">
-            <div class="rounded-2xl border border-line bg-white/80 p-6 shadow-sm shadow-brand-600/5">
-                <h2 class="font-display text-2xl font-semibold text-ink">Histórico</h2>
-                <p class="mt-1 text-sm text-muted">Sessões registadas e links públicos.</p>
+        {# Histórico + gráfico #}
+        <section class="lg:col-span-7 space-y-8">
+            <div>
+                <h2 class="text-base font-semibold text-ink">Histórico</h2>
+                <p class="mt-0.5 text-sm text-muted">Sessões registadas e links públicos.</p>
 
                 {% if consultas %}
-                <ul role="list" class="mt-5 divide-y divide-line">
+                <ul role="list" class="mt-4 divide-y divide-line rounded-xl bg-white ring-1 ring-line">
                     {% for consulta in consultas %}
-                    <li class="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <li class="flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         <div class="min-w-0">
-                            <div class="flex items-center gap-3">
-                                <span class="flex-none rounded-full p-1 {% if consulta.humor >= 3 %}bg-green-400/15 text-green-500{% else %}bg-red-400/15 text-red-500{% endif %}">
-                                    <span class="block size-2 rounded-full bg-current"></span>
-                                </span>
+                            <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                                <span class="size-2 shrink-0 rounded-full {% if consulta.humor >= 3 %}bg-brand-500{% else %}bg-red-500{% endif %}"></span>
                                 <p class="text-sm font-semibold text-ink">{{ consulta.data|date:"d/m/Y H:i" }}</p>
-                                <span class="text-xs text-muted">Humor {{ consulta.humor }}/5</span>
+                                <span class="text-xs tabular-nums text-muted">Humor {{ consulta.humor }}/5</span>
                             </div>
-                            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 pl-7 text-xs text-muted">
-                                <a href="{{ consulta.link_publico }}" target="_blank" rel="noopener" class="font-medium text-brand-700 hover:underline">Abrir consulta pública</a>
+                            <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-4 text-xs text-muted">
+                                <a href="{{ consulta.link_publico }}" target="_blank" rel="noopener" class="font-medium text-brand-700 hover:underline">Abrir link público</a>
                                 <span>{{ consulta.views }} visualizações</span>
                             </div>
                         </div>
-                        <form action="{% url 'excluir_consulta' consulta.id %}" method="POST" onsubmit="return confirm('Excluir esta consulta?');">
+                        <form action="{% url 'excluir_consulta' consulta.id %}" method="POST" onsubmit="return confirm('Excluir esta consulta?');" class="sm:shrink-0">
                             {% csrf_token %}
-                            <button type="submit" class="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-600 ring-1 ring-inset ring-red-200 transition hover:bg-red-100">
+                            <button type="submit" class="text-xs font-medium text-red-600 transition hover:text-red-700 cursor-pointer">
                                 Excluir
                             </button>
                         </form>
@@ -128,7 +163,7 @@
                     {% endfor %}
                 </ul>
                 {% else %}
-                <div class="mt-6 rounded-xl border border-dashed border-line bg-brand-50/40 px-4 py-10 text-center">
+                <div class="mt-4 px-4 py-12 text-center">
                     <p class="text-sm font-medium text-ink">Ainda sem consultas</p>
                     <p class="mt-1 text-sm text-muted">Registe a primeira sessão no formulário ao lado.</p>
                 </div>
@@ -136,9 +171,9 @@
             </div>
 
             {% if consultas %}
-            <div class="rounded-2xl border border-line bg-white/80 p-6 shadow-sm shadow-brand-600/5">
-                <h2 class="font-display text-xl font-semibold text-ink">Evolução do humor</h2>
-                <div class="mt-4 h-64">
+            <div>
+                <h2 class="text-base font-semibold text-ink">Evolução do humor</h2>
+                <div class="mt-3 h-56 rounded-xl bg-white px-3 py-4 ring-1 ring-line sm:h-64">
                     <canvas id="humorChart" aria-label="Gráfico de humor por sessão"></canvas>
                 </div>
             </div>
@@ -148,13 +183,34 @@
 </div>
 
 <script>
+(function () {
     const humorInput = document.getElementById('humor');
     const humorValor = document.getElementById('humor-valor');
-    if (humorInput && humorValor) {
-        const sync = () => { humorValor.textContent = humorInput.value; };
-        humorInput.addEventListener('input', sync);
-        sync();
+    const btns = document.querySelectorAll('.humor-btn');
+
+    function syncHumor(val) {
+        const n = String(val);
+        if (humorInput) {
+            humorInput.value = n;
+            humorInput.setAttribute('aria-valuenow', n);
+        }
+        if (humorValor) humorValor.textContent = n;
+        btns.forEach((btn) => {
+            const active = btn.dataset.humor === n;
+            btn.classList.toggle('bg-brand-600', active);
+            btn.classList.toggle('text-white', active);
+            btn.classList.toggle('ring-brand-600', active);
+            btn.classList.toggle('bg-white', !active);
+            btn.classList.toggle('text-ink', !active);
+            btn.classList.toggle('ring-line', !active);
+            btn.classList.toggle('hover:bg-surface', !active);
+        });
     }
+
+    btns.forEach((btn) => {
+        btn.addEventListener('click', () => syncHumor(btn.dataset.humor));
+    });
+    syncHumor(humorInput?.value || 3);
 
     {% if consultas %}
     const labels = [{% for c in consultas_ordenadas %}"{{ c.data|date:'d/m' }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
@@ -169,23 +225,36 @@
                     label: 'Humor',
                     data: dados,
                     borderColor: '#1f7a6f',
-                    backgroundColor: 'rgba(42, 157, 143, 0.12)',
+                    backgroundColor: 'rgba(42, 157, 143, 0.1)',
                     fill: true,
                     tension: 0.35,
                     pointRadius: 4,
                     pointBackgroundColor: '#2a9d8f',
+                    borderWidth: 2,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { min: 1, max: 5, ticks: { stepSize: 1 } }
+                    y: {
+                        min: 1,
+                        max: 5,
+                        ticks: { stepSize: 1, color: '#5a6b69', font: { size: 11 } },
+                        grid: { color: '#e2ebe8' },
+                        border: { display: false },
+                    },
+                    x: {
+                        ticks: { color: '#5a6b69', font: { size: 11 } },
+                        grid: { display: false },
+                        border: { display: false },
+                    }
                 },
                 plugins: { legend: { display: false } }
             }
         });
     }
     {% endif %}
+})();
 </script>
 {% endblock 'body' %}
