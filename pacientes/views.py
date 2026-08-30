@@ -102,9 +102,7 @@ def pacientes(request):
                 if q_lower in code.casefold() or q_lower in label.casefold()
             ]
             qs = qs.filter(
-                Q(nome__icontains=q)
-                | Q(email__icontains=q)
-                | Q(queixa__in=queixa_codes)
+                Q(nome__icontains=q) | Q(email__icontains=q) | Q(queixa__in=queixa_codes)
             )
         if pagamento == "em_dia":
             qs = qs.filter(pagamento_em_dia=True)

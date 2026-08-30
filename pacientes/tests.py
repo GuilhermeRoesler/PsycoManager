@@ -174,7 +174,9 @@ class PacientesViewsTests(TestCase):
         self.assertNotContains(response, "Paciente Alheio")
 
         detalhe = self.client.get(
-            reverse("paciente_view", kwargs={"id": Pacientes.objects.get(nome="Paciente Alheio").id})
+            reverse(
+                "paciente_view", kwargs={"id": Pacientes.objects.get(nome="Paciente Alheio").id}
+            )
         )
         self.assertEqual(detalhe.status_code, 404)
 

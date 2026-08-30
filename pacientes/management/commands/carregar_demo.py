@@ -238,7 +238,9 @@ class Command(BaseCommand):
         demo_user.is_superuser = False
         demo_user.save()
         if created:
-            self.stdout.write(self.style.SUCCESS(f"Conta demo criada: {DEMO_USERNAME} / {DEMO_PASSWORD}"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Conta demo criada: {DEMO_USERNAME} / {DEMO_PASSWORD}")
+            )
         else:
             self.stdout.write(f"Conta demo atualizada: {DEMO_USERNAME} / {DEMO_PASSWORD}")
 
@@ -321,5 +323,7 @@ class Command(BaseCommand):
         self.stdout.write(f"  • {total_consultas} consultas")
         self.stdout.write(f"  • {total_views} visualizações")
         self.stdout.write("")
-        self.stdout.write(f"Login: http://127.0.0.1:8000/entrar/  ({DEMO_USERNAME} / {DEMO_PASSWORD})")
+        self.stdout.write(
+            f"Login: http://127.0.0.1:8000/entrar/  ({DEMO_USERNAME} / {DEMO_PASSWORD})"
+        )
         self.stdout.write("Admin: http://127.0.0.1:8000/admin/  (admin / admin123)")
