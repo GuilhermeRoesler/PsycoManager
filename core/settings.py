@@ -180,3 +180,7 @@ MESSAGE_TAGS = {
     constants.SUCCESS: "bg-green-50 text-green-800 ring-1 ring-inset ring-green-600/15",
     constants.ERROR: "bg-red-50 text-red-800 ring-1 ring-inset ring-red-600/15",
 }
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "pacientes"
+LOGOUT_REDIRECT_URL = "login"

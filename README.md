@@ -79,11 +79,13 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-O projeto estará disponível em: `http://127.0.0.1:8000/pacientes/`
+O projeto estará disponível em: `http://127.0.0.1:8000/entrar/`
+
+Conta demo (dados de demonstração): **demo** / **demo123**
 
 ## ⚙️ Configuração Adicional
 
-- **Superuser:** Para aceder ao painel administrativo (`/admin/`), crie um superutilizador:
+- **Superuser:** O `carregar_demo` cria `admin` / `admin123` para `/admin/`. Alternativa:
 
 ```bash
 python manage.py createsuperuser

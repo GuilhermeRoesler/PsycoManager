@@ -12,6 +12,11 @@ class Pacientes(models.Model):
         ("TAG", "Transtorno de Ansiedade Generalizada"),
     )
 
+    psicologo = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="pacientes",
+    )
     nome = models.CharField(max_length=255)
     email = models.EmailField()
     telefone = models.CharField(max_length=255, null=True, blank=True)

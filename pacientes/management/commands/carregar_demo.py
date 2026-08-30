@@ -18,6 +18,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from PIL import Image, ImageDraw, ImageFont
 
+from pacientes.demo_auth import DEMO_EMAIL, DEMO_PASSWORD, DEMO_USERNAME
 from pacientes.models import Consultas, Pacientes, Tarefas, Visualizacoes
 
 # MP4 mínimo válido (sample curto) — suficiente para o <video> não rebentar no upload.
@@ -231,10 +232,25 @@ class Command(BaseCommand):
             Tarefas.objects.create(tarefa=t, instrucoes=i, frequencia=f) for t, i, f in TAREFAS_DEMO
         ]
 
-        self.stdout.write("A criar pacientes...")
+        self.stdout.write("A criar conta demo e pacientes...")
+        User = get_user_model()
+        demo_user, created = User.objects.get_or_create(
+            username=DEMO_USERNAME,
+            defaults={"email": DEMO_EMAIL},
+        )
+        demo_user.set_password(DEMO_PASSWORD)
+        demo_user.is_staff = False
+        demo_user.is_superuser = False
+        demo_user.save()
+        if created:
+            self.stdout.write(self.style.SUCCESS(f"Conta demo criada: {DEMO_USERNAME} / {DEMO_PASSWORD}"))
+        else:
+            self.stdout.write(f"Conta demo atualizada: {DEMO_USERNAME} / {DEMO_PASSWORD}")
+
         pacientes = []
         for idx, (nome, email, telefone, queixa, pagamento) in enumerate(PACIENTES_DEMO):
             p = Pacientes(
+                psicologo=demo_user,
                 nome=nome,
                 email=email,
                 telefone=telefone,
@@ -302,5 +318,5 @@ class Command(BaseCommand):
         self.stdout.write(f"  • {total_consultas} consultas")
         self.stdout.write(f"  • {total_views} visualizações")
         self.stdout.write("")
-        self.stdout.write("UI:    http://127.0.0.1:8000/pacientes/")
+        self.stdout.write(f"Login: http://127.0.0.1:8000/entrar/  ({DEMO_USERNAME} / {DEMO_PASSWORD})")
         self.stdout.write("Admin: http://127.0.0.1:8000/admin/  (admin / admin123)")

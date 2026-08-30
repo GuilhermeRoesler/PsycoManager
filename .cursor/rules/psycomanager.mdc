@@ -19,6 +19,7 @@ Lê e segue a skill do projeto:
 - **App principal:** `pacientes/` (models, views, templates)
 - **Sem API REST / SPA** — views function-based e HTML forms
 - **Domínio:** `Pacientes`, `Consultas`, `Tarefas`, `Visualizacoes`
+- **Auth:** login em `/entrar/` (conta demo `demo`/`demo123`); pacientes scoped por `psicologo`
 - **Regra chave:** link público da consulta só se `pagamento_em_dia`
 
 Não inventes camadas (services, DRF, React) sem o utilizador pedir. Mantém padrões e nomes em português já usados no código.

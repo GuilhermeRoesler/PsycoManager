@@ -31,7 +31,7 @@ echo "[4/5] Carregando dados demo (se a base estiver vazia)..."
 
 echo "[5/5] A iniciar o servidor..."
 echo
-echo "UI:    http://127.0.0.1:8000/pacientes/"
+echo "Login: http://127.0.0.1:8000/entrar/  (demo / demo123)"
 echo "Admin: http://127.0.0.1:8000/admin/  (admin / admin123)"
 echo
 echo "Ctrl+C para parar."

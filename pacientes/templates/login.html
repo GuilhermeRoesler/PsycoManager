@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Entrar — PsycoManager{% endblock %}
+
+{% block header %}
+<header class="border-b border-line bg-white/90 backdrop-blur-md">
+    <nav class="mx-auto flex h-14 max-w-6xl items-center px-4 sm:px-6" aria-label="Principal">
+        <a href="{% url 'login' %}" class="flex items-center gap-2.5">
+            <img src="{% static 'img/logo.png' %}" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
+            <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
+        </a>
+    </nav>
+</header>
+{% endblock header %}
+
+{% block 'body' %}
+<div class="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-md flex-col justify-center px-4 py-12 sm:px-6">
+    <div class="mb-8 text-center">
+        <h1 class="font-display text-3xl font-semibold tracking-tight text-ink">Entrar</h1>
+        <p class="mt-2 text-sm text-muted">Aceda à sua área de pacientes</p>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg px-3.5 py-2.5 text-sm {{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mb-6 rounded-xl bg-brand-50 px-4 py-3.5 ring-1 ring-inset ring-brand-200">
+        <p class="text-xs font-semibold uppercase tracking-wider text-brand-700">Conta demo</p>
+        <p class="mt-1 text-sm text-brand-700/90">
+            Explore os dados de demonstração com
+            <span class="font-semibold text-ink">{{ demo_username }}</span>
+            /
+            <span class="font-semibold text-ink">{{ demo_password }}</span>
+        </p>
+        <button type="button" id="usar-demo"
+            class="btn-secondary mt-3 w-full !bg-white !py-2 text-sm"
+            data-username="{{ demo_username }}"
+            data-password="{{ demo_password }}">
+            Preencher conta demo
+        </button>
+    </div>
+
+    <form method="post" action="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="space-y-4">
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <div>
+            <label for="username" class="block text-xs font-medium text-muted">Utilizador</label>
+            <input type="text" name="username" id="username" autocomplete="username" required
+                class="input-field mt-1" placeholder="seu.utilizador">
+        </div>
+        <div>
+            <label for="password" class="block text-xs font-medium text-muted">Palavra-passe</label>
+            <input type="password" name="password" id="password" autocomplete="current-password" required
+                class="input-field mt-1" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-primary w-full">Entrar</button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-muted">
+        Ainda não tem conta?
+        <a href="{% url 'registo' %}" class="font-semibold text-brand-700 hover:text-brand-600">Criar conta</a>
+    </p>
+</div>
+<script>
+(function () {
+    const btn = document.getElementById('usar-demo');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        document.getElementById('username').value = btn.dataset.username || '';
+        document.getElementById('password').value = btn.dataset.password || '';
+        document.getElementById('username').focus();
+    });
+})();
+</script>
+{% endblock 'body' %}

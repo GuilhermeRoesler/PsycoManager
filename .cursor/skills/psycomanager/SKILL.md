@@ -48,6 +48,7 @@ PsycoManager/
 ## Modelos (`pacientes/models.py`)
 
 ### Pacientes
+- `psicologo` FK → `User` (CASCADE; cada psicólogo só vê os seus)
 - `nome`, `email`, `telefone` (opcional), `foto` → `photos/`
 - `pagamento_em_dia` (bool, default `True`)
 - `queixa`: `TDAH` | `D` | `A` | `TAG`
@@ -70,7 +71,17 @@ Criação/edição de tarefas: **só via Admin**. A UI de consulta só associa t
 - `consulta` FK, `ip` (GenericIPAddressField)
 - Não registado no admin
 
-## Rotas (`pacientes/urls.py`, prefixo `/pacientes/`)
+## Rotas
+
+Auth (`core/urls.py`):
+
+| Path | View | Nome |
+|------|------|------|
+| `entrar/` | `login_view` | `login` |
+| `criar-conta/` | `registo_view` | `registo` |
+| `sair/` | `logout_view` (POST) | `logout` |
+
+App (`pacientes/urls.py`, prefixo `/pacientes/`):
 
 | Path | View | Nome |
 |------|------|------|
@@ -80,23 +91,26 @@ Criação/edição de tarefas: **só via Admin**. A UI de consulta só associa t
 | `excluir_consulta/<int:id>` | `excluir_consulta` | `excluir_consulta` |
 | `consulta_publica/<int:id>` | `consulta_publica` | `consulta_publica` |
 
-Raiz (`core/urls.py`): `/admin/`, include `pacientes`, media em DEBUG.
+Raiz: redirect → `pacientes`, `/admin/`, media em DEBUG. Credenciais demo: `demo` / `demo123` (`pacientes/demo_auth.py`).
 
 ## Features existentes
 
-1. Listar / cadastrar pacientes (foto obrigatória no create atual)
-2. Detalhe do paciente: toggle pagamento, nova consulta, histórico
-3. Consulta: humor, notas, vídeo, tarefas M2M
-4. Consulta pública partilhável (vídeo + tarefas; **sem** `registro_geral`)
-5. Contagem de visualizações (total + IPs únicos)
-6. Admin para Pacientes, Consultas, Tarefas
+1. Auth básica: login (com conta demo visível), registo, logout
+2. Listar / cadastrar pacientes (foto obrigatória no create atual; scoped ao `request.user`)
+3. Detalhe do paciente: toggle pagamento, nova consulta, histórico
+4. Consulta: humor, notas, vídeo, tarefas M2M
+5. Consulta pública partilhável (vídeo + tarefas; **sem** `registro_geral`; sem login)
+6. Contagem de visualizações (total + IPs únicos)
+7. Admin para Pacientes, Consultas, Tarefas
 
 ## Regras de domínio
 
+- Rotas privadas (`pacientes`, detalhe, atualizar, excluir) exigem `@login_required` e filtro por `psicologo=request.user`
 - Link público: se `not paciente.pagamento_em_dia` → `Http404`
 - Cada GET em `consulta_publica` grava IP em `Visualizacoes`
-- Apagar paciente apaga consultas (CASCADE)
+- Apagar paciente apaga consultas (CASCADE); apagar user apaga os seus pacientes
 - Humor na UI: `>= 3` positivo, senão negativo
+- Conta demo (`carregar_demo`) recebe todos os pacientes seed; contas novas começam vazias
 
 ## Padrões de código (obrigatório seguir)
 
@@ -114,15 +128,13 @@ Raiz (`core/urls.py`): `/admin/`, include `pacientes`, media em DEBUG.
 2. Novos campos → migration Django; registar no admin se fizer sentido
 3. Manter server-rendered + Tailwind CDN, salvo pedido explícito de mudança de stack
 4. Não expor `registro_geral` na consulta pública
-5. Qualquer rota sensível nova deve considerar auth (`@login_required` / permissões) — as views atuais **não** têm login; não alargar essa superfície sem cuidado
+5. Rotas privadas: `@login_required` + ownership (`psicologo`); `consulta_publica` permanece pública
 6. Evitar exclusões destrutivas via GET; preferir POST quando tocares nesse fluxo
 
 ## Limitações conhecidas (contexto, não “bugs a ignorar”)
 
-- Sem `@login_required` nas views da app — dados acessíveis por URL
-- `SECRET_KEY` / `DEBUG` hardcoded; sem `.env` ativo
-- `link_publico` fixo em `http://127.0.0.1:8000...`
-- `pacientes/tests.py` vazio
+- Auth demo (sem email verification, reset password, OAuth)
+- `SECRET_KEY` / `DEBUG` via env com defaults inseguros para prod
 - Placeholders na UI (ex.: faltas / totais) podem não ter contexto na view
 
 ## Comandos locais
@@ -132,7 +144,8 @@ python -m venv venv
 # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
+python manage.py carregar_demo
 python manage.py runserver
-# UI: http://127.0.0.1:8000/pacientes/
-python manage.py createsuperuser  # /admin/
+# Login: http://127.0.0.1:8000/entrar/  (demo / demo123)
+# Admin: /admin/  (admin / admin123 via carregar_demo)
 ```

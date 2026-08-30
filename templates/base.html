@@ -189,7 +189,16 @@
                     <a href="{% url 'pacientes' %}" class="rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700">Pacientes</a>
                 </div>
             </div>
-            {% block header_actions %}{% endblock %}
+            <div class="flex items-center gap-2 sm:gap-3">
+                {% if user.is_authenticated %}
+                <span class="hidden text-sm text-muted sm:inline truncate max-w-[10rem]" title="{{ user.username }}">{{ user.username }}</span>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-ghost">Sair</button>
+                </form>
+                {% endif %}
+                {% block header_actions %}{% endblock %}
+            </div>
         </nav>
     </header>
     {% endblock header %}

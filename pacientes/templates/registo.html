@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Criar conta — PsycoManager{% endblock %}
+
+{% block header %}
+<header class="border-b border-line bg-white/90 backdrop-blur-md">
+    <nav class="mx-auto flex h-14 max-w-6xl items-center px-4 sm:px-6" aria-label="Principal">
+        <a href="{% url 'login' %}" class="flex items-center gap-2.5">
+            <img src="{% static 'img/logo.png' %}" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
+            <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
+        </a>
+    </nav>
+</header>
+{% endblock header %}
+
+{% block 'body' %}
+<div class="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-md flex-col justify-center px-4 py-12 sm:px-6">
+    <div class="mb-8 text-center">
+        <h1 class="font-display text-3xl font-semibold tracking-tight text-ink">Criar conta</h1>
+        <p class="mt-2 text-sm text-muted">Comece com a sua própria lista de pacientes</p>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg px-3.5 py-2.5 text-sm {{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'registo' %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label for="username" class="block text-xs font-medium text-muted">Utilizador</label>
+            <input type="text" name="username" id="username" autocomplete="username" required
+                class="input-field mt-1" placeholder="seu.utilizador"
+                value="{{ request.POST.username|default:'' }}">
+        </div>
+        <div>
+            <label for="email" class="block text-xs font-medium text-muted">Email <span class="text-muted/60">(opcional)</span></label>
+            <input type="email" name="email" id="email" autocomplete="email"
+                class="input-field mt-1" placeholder="voce@email.com"
+                value="{{ request.POST.email|default:'' }}">
+        </div>
+        <div>
+            <label for="password" class="block text-xs font-medium text-muted">Palavra-passe</label>
+            <input type="password" name="password" id="password" autocomplete="new-password" required minlength="6"
+                class="input-field mt-1" placeholder="mín. 6 caracteres">
+        </div>
+        <div>
+            <label for="password2" class="block text-xs font-medium text-muted">Confirmar palavra-passe</label>
+            <input type="password" name="password2" id="password2" autocomplete="new-password" required minlength="6"
+                class="input-field mt-1" placeholder="repita a palavra-passe">
+        </div>
+        <button type="submit" class="btn-primary w-full">Criar conta</button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-muted">
+        Já tem conta?
+        <a href="{% url 'login' %}" class="font-semibold text-brand-700 hover:text-brand-600">Entrar</a>
+    </p>
+</div>
+{% endblock 'body' %}

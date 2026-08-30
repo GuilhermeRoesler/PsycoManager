@@ -5,8 +5,13 @@ from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 from django.views.static import serve
 
+from pacientes import views as pacientes_views
+
 urlpatterns = [
     path("", RedirectView.as_view(pattern_name="pacientes", permanent=False)),
+    path("entrar/", pacientes_views.login_view, name="login"),
+    path("criar-conta/", pacientes_views.registo_view, name="registo"),
+    path("sair/", pacientes_views.logout_view, name="logout"),
     path("admin/", admin.site.urls),
     path("pacientes/", include("pacientes.urls")),
 ]
