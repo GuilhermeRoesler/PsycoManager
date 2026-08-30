@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Acesso negado — PsycoManager{% endblock %}
+
+{% block header_actions %}{% endblock %}
+
+{% block 'body' %}
+<div class="mx-auto flex max-w-lg flex-col items-center px-4 py-20 text-center sm:py-28">
+    <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">Erro 403</p>
+    <h1 class="mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">Acesso negado</h1>
+    <p class="mt-3 text-sm leading-relaxed text-muted">
+        Não tem permissão para ver esta página ou a sessão expirou.
+    </p>
+    <a href="{% url 'pacientes' %}" class="btn-primary mt-8">Voltar aos pacientes</a>
+</div>
+{% endblock 'body' %}

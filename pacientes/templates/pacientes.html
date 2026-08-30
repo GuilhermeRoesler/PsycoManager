@@ -3,11 +3,11 @@
 {% block title %}Pacientes — PsycoManager{% endblock %}
 
 {% block header_actions %}
-<button type="button" id="btn-abrir-cadastro" class="btn-primary cursor-pointer">
+<button type="button" id="btn-abrir-cadastro" class="btn-primary cursor-pointer shrink-0" aria-label="Novo paciente">
     <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
     </svg>
-    Novo paciente
+    <span class="hidden sm:inline">Novo paciente</span>
 </button>
 {% endblock %}
 
@@ -17,10 +17,14 @@
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-ink">Pacientes</h1>
             <p class="mt-1 text-sm text-muted">
-                {% if pacientes %}
-                {{ pacientes|length }} {% if pacientes|length == 1 %}paciente{% else %}pacientes{% endif %}
+                {% if tem_pacientes %}
+                    {% if filtros_ativos %}
+                        {{ total_pacientes }} {% if total_pacientes == 1 %}resultado{% else %}resultados{% endif %}
+                    {% else %}
+                        {{ total_pacientes }} {% if total_pacientes == 1 %}paciente{% else %}pacientes{% endif %}
+                    {% endif %}
                 {% else %}
-                Nenhum paciente cadastrado
+                    Nenhum paciente cadastrado
                 {% endif %}
             </p>
         </div>
@@ -36,35 +40,35 @@
     </div>
     {% endif %}
 
-    {% if pacientes %}
-    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+    {% if tem_pacientes %}
+    <form method="get" action="{% url 'pacientes' %}" class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center" role="search">
         <div class="relative flex-1">
             <svg class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
             </svg>
-            <input type="search" id="filtro-busca" placeholder="Buscar por nome, email ou queixa…" class="input-field with-icon-left" autocomplete="off">
+            <input type="search" name="q" id="filtro-busca" value="{{ filtro_q }}" placeholder="Buscar por nome, email ou queixa…" class="input-field with-icon-left" autocomplete="off">
         </div>
-        <select id="filtro-pagamento" class="input-field sm:w-44">
-            <option value="">Pagamento: todos</option>
-            <option value="em_dia">Em dia</option>
-            <option value="pendente">Pendente</option>
+        <select name="pagamento" id="filtro-pagamento" class="input-field sm:w-44">
+            <option value="" {% if not filtro_pagamento %}selected{% endif %}>Pagamento: todos</option>
+            <option value="em_dia" {% if filtro_pagamento == "em_dia" %}selected{% endif %}>Em dia</option>
+            <option value="pendente" {% if filtro_pagamento == "pendente" %}selected{% endif %}>Pendente</option>
         </select>
-        <select id="filtro-queixa" class="input-field sm:w-48">
-            <option value="">Queixa: todas</option>
+        <select name="queixa" id="filtro-queixa" class="input-field sm:w-48">
+            <option value="" {% if not filtro_queixa %}selected{% endif %}>Queixa: todas</option>
             {% for queixa in queixas %}
-            <option value="{{ queixa.1 }}">{{ queixa.1 }}</option>
+            <option value="{{ queixa.0 }}" {% if filtro_queixa == queixa.0 %}selected{% endif %}>{{ queixa.1 }}</option>
             {% endfor %}
         </select>
-    </div>
+        <noscript>
+            <button type="submit" class="btn-secondary">Filtrar</button>
+        </noscript>
+    </form>
 
+    {% if page_obj.object_list %}
     <div class="mt-4 overflow-hidden rounded-xl bg-white ring-1 ring-line">
         <ul role="list" id="lista-pacientes" class="divide-y divide-line">
-            {% for paciente in pacientes %}
-            <li class="paciente-item"
-                data-nome="{{ paciente.nome|lower }}"
-                data-email="{{ paciente.email|lower }}"
-                data-queixa="{{ paciente.get_queixa_display }}"
-                data-pagamento="{% if paciente.pagamento_em_dia %}em_dia{% else %}pendente{% endif %}">
+            {% for paciente in page_obj %}
+            <li>
                 <a href="{% url 'paciente_view' paciente.id %}"
                     class="flex items-center gap-3 px-4 py-3 transition hover:bg-surface/80 sm:gap-4 sm:px-5">
                     <img class="size-10 shrink-0 rounded-full object-cover ring-1 ring-line" src="{{ paciente.foto.url }}" alt="">
@@ -95,8 +99,38 @@
             </li>
             {% endfor %}
         </ul>
-        <p id="lista-vazia-filtro" class="hidden px-5 py-12 text-center text-sm text-muted">Nenhum paciente corresponde aos filtros.</p>
     </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-4 flex items-center justify-between gap-3" aria-label="Paginação">
+        <p class="text-xs text-muted">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </p>
+        <div class="flex items-center gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?q={{ filtro_q|urlencode }}&pagamento={{ filtro_pagamento|urlencode }}&queixa={{ filtro_queixa|urlencode }}&page={{ page_obj.previous_page_number }}"
+                class="btn-secondary px-3 py-2 text-xs">Anterior</a>
+            {% else %}
+            <span class="btn-secondary cursor-not-allowed px-3 py-2 text-xs opacity-40">Anterior</span>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?q={{ filtro_q|urlencode }}&pagamento={{ filtro_pagamento|urlencode }}&queixa={{ filtro_queixa|urlencode }}&page={{ page_obj.next_page_number }}"
+                class="btn-secondary px-3 py-2 text-xs">Seguinte</a>
+            {% else %}
+            <span class="btn-secondary cursor-not-allowed px-3 py-2 text-xs opacity-40">Seguinte</span>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="mt-4 rounded-xl bg-white px-5 py-12 text-center ring-1 ring-line">
+        <p class="text-sm font-medium text-ink">Nenhum paciente corresponde aos filtros</p>
+        <p class="mt-1 text-sm text-muted">Ajuste a busca ou limpe os filtros.</p>
+        <a href="{% url 'pacientes' %}" class="btn-secondary mt-5 inline-flex">Limpar filtros</a>
+    </div>
+    {% endif %}
+
     {% else %}
     <div class="mt-10 flex flex-col items-center justify-center px-6 py-20 text-center">
         <div class="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
@@ -198,37 +232,19 @@
     {% endif %}
 
     const busca = document.getElementById('filtro-busca');
-    const filtroPag = document.getElementById('filtro-pagamento');
-    const filtroQueixa = document.getElementById('filtro-queixa');
-    const items = document.querySelectorAll('.paciente-item');
-    const emptyMsg = document.getElementById('lista-vazia-filtro');
-
-    function aplicarFiltros() {
-        if (!items.length) return;
-        const q = (busca?.value || '').trim().toLowerCase();
-        const pag = filtroPag?.value || '';
-        const queixa = filtroQueixa?.value || '';
-        let visiveis = 0;
-
-        items.forEach((el) => {
-            const nome = el.dataset.nome || '';
-            const email = el.dataset.email || '';
-            const qxa = el.dataset.queixa || '';
-            const pagamento = el.dataset.pagamento || '';
-            const matchBusca = !q || nome.includes(q) || email.includes(q) || qxa.toLowerCase().includes(q);
-            const matchPag = !pag || pagamento === pag;
-            const matchQueixa = !queixa || qxa === queixa;
-            const show = matchBusca && matchPag && matchQueixa;
-            el.classList.toggle('hidden', !show);
-            if (show) visiveis += 1;
+    const form = busca && busca.form;
+    if (busca && form) {
+        let timer;
+        busca.addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => form.submit(), 350);
         });
-
-        if (emptyMsg) emptyMsg.classList.toggle('hidden', visiveis > 0);
     }
-
-    [busca, filtroPag, filtroQueixa].forEach((el) => {
-        if (el) el.addEventListener('input', aplicarFiltros);
-        if (el) el.addEventListener('change', aplicarFiltros);
+    ['filtro-pagamento', 'filtro-queixa'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && el.form) {
+            el.addEventListener('change', () => el.form.submit());
+        }
     });
 })();
 </script>

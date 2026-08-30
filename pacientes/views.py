@@ -1,17 +1,61 @@
 from django.contrib import messages
 from django.contrib.messages import constants
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .models import Consultas, Pacientes, Tarefas, Visualizacoes
 
+PACIENTES_POR_PAGINA = 20
+
 
 def pacientes(request):
     if request.method == "GET":
-        pacientes_qs = Pacientes.objects.all()
-        queixas = Pacientes.queixa_choices
-        return render(request, "pacientes.html", {"queixas": queixas, "pacientes": pacientes_qs})
+        qs = Pacientes.objects.all().order_by("nome")
+        q = request.GET.get("q", "").strip()
+        pagamento = request.GET.get("pagamento", "").strip()
+        queixa = request.GET.get("queixa", "").strip()
+
+        if q:
+            q_lower = q.casefold()
+            queixa_codes = [
+                code
+                for code, label in Pacientes.queixa_choices
+                if q_lower in code.casefold() or q_lower in label.casefold()
+            ]
+            qs = qs.filter(
+                Q(nome__icontains=q)
+                | Q(email__icontains=q)
+                | Q(queixa__in=queixa_codes)
+            )
+        if pagamento == "em_dia":
+            qs = qs.filter(pagamento_em_dia=True)
+        elif pagamento == "pendente":
+            qs = qs.filter(pagamento_em_dia=False)
+        if queixa:
+            qs = qs.filter(queixa=queixa)
+
+        page_obj = Paginator(qs, PACIENTES_POR_PAGINA).get_page(request.GET.get("page"))
+        total = qs.count()
+        filtros_ativos = bool(q or pagamento or queixa)
+
+        return render(
+            request,
+            "pacientes.html",
+            {
+                "queixas": Pacientes.queixa_choices,
+                "pacientes": page_obj,
+                "page_obj": page_obj,
+                "total_pacientes": total,
+                "tem_pacientes": Pacientes.objects.exists(),
+                "filtros_ativos": filtros_ativos,
+                "filtro_q": q,
+                "filtro_pagamento": pagamento,
+                "filtro_queixa": queixa,
+            },
+        )
     elif request.method == "POST":
         nome = request.POST.get("nome")
         email = request.POST.get("email")

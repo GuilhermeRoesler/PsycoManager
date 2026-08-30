@@ -99,6 +99,40 @@ class PacientesViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Maria")
 
+    def test_lista_pacientes_filtro_e_paginacao(self):
+        for i in range(21):
+            Pacientes.objects.create(
+                nome=f"Paciente {i:02d}",
+                email=f"p{i}@example.com",
+                queixa="A",
+                foto=_imagem_teste(f"foto{i}.jpg"),
+            )
+
+        response = self.client.get(reverse("pacientes"), {"queixa": "A"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["page_obj"].paginator.num_pages, 2)
+        self.assertTrue(response.context["page_obj"].has_next())
+
+        page2 = self.client.get(reverse("pacientes"), {"queixa": "A", "page": 2})
+        self.assertEqual(page2.status_code, 200)
+        self.assertEqual(page2.context["page_obj"].number, 2)
+
+    def test_paginas_erro_usam_templates(self):
+        with self.settings(DEBUG=False):
+            r404 = self.client.get("/rota-inexistente-xyz/")
+            self.assertEqual(r404.status_code, 404)
+            self.assertTemplateUsed(r404, "404.html")
+            self.assertContains(r404, "Página não encontrada", status_code=404)
+
+        from django.core.exceptions import PermissionDenied
+        from django.test import RequestFactory
+        from django.views.defaults import permission_denied
+
+        request = RequestFactory().get("/")
+        r403 = permission_denied(request, PermissionDenied("negado"))
+        self.assertEqual(r403.status_code, 403)
+        self.assertIn(b"Acesso negado", r403.content)
+
     def test_detalhe_paciente_get(self):
         response = self.client.get(reverse("paciente_view", kwargs={"id": self.paciente.id}))
         self.assertEqual(response.status_code, 200)
