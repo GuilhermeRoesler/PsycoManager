@@ -40,6 +40,10 @@
             @apply block w-full rounded-lg border-0 bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm ring-1 ring-inset ring-line placeholder:text-muted/50 focus:ring-2 focus:ring-inset focus:ring-brand-500;
         }
 
+        .input-field.with-icon-left {
+            padding-left: 2.5rem;
+        }
+
         .btn-primary {
             @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50;
         }
@@ -58,6 +62,108 @@
 
         .file-field {
             @apply block w-full text-sm text-muted file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100;
+        }
+
+        .checkbox-field {
+            -webkit-appearance: none;
+            appearance: none;
+            @apply relative mt-0.5 size-4 shrink-0 cursor-pointer rounded-[0.3rem] border border-line bg-white shadow-sm transition;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 0.65rem;
+        }
+
+        .checkbox-field:hover {
+            @apply border-brand-500;
+        }
+
+        .checkbox-field:checked {
+            @apply border-brand-600 bg-brand-600;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        }
+
+        .checkbox-field:focus-visible {
+            @apply outline-none ring-2 ring-brand-500/35 ring-offset-2 ring-offset-white;
+        }
+
+        .checkbox-field:disabled {
+            @apply cursor-not-allowed opacity-50;
+        }
+
+        .checkbox-row {
+            @apply flex cursor-pointer items-start gap-3 rounded-md px-2 py-2 transition hover:bg-surface;
+        }
+
+        .checkbox-row:has(.checkbox-field:checked) {
+            @apply bg-brand-50;
+        }
+
+        .checkbox-row:has(.checkbox-field:focus-visible) {
+            @apply ring-2 ring-inset ring-brand-500/25;
+        }
+
+        .select-root {
+            @apply relative;
+        }
+
+        .select-native {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .select-trigger {
+            @apply flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border-0 bg-white px-3.5 py-2.5 text-left text-sm text-ink shadow-sm ring-1 ring-inset ring-line transition hover:bg-surface/60 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500;
+        }
+
+        .select-trigger[aria-expanded="true"] {
+            @apply ring-2 ring-brand-500;
+        }
+
+        .select-trigger.is-placeholder {
+            @apply text-muted/60;
+        }
+
+        .select-trigger .select-chevron {
+            @apply size-4 shrink-0 text-muted transition-transform duration-200;
+        }
+
+        .select-trigger[aria-expanded="true"] .select-chevron {
+            @apply rotate-180 text-brand-600;
+        }
+
+        .select-menu {
+            @apply absolute left-0 right-0 z-[60] mt-1.5 hidden max-h-56 overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-line;
+        }
+
+        .select-menu.is-open {
+            @apply block;
+        }
+
+        .select-option {
+            @apply flex cursor-pointer items-center gap-2 px-3.5 py-2 text-sm text-ink transition hover:bg-brand-50 hover:text-brand-700;
+        }
+
+        .select-option[aria-selected="true"] {
+            @apply bg-brand-50 font-medium text-brand-700;
+        }
+
+        .select-option.is-disabled {
+            @apply cursor-default text-muted/50 hover:bg-transparent hover:text-muted/50;
+        }
+
+        .select-check {
+            @apply size-3.5 shrink-0 text-brand-600 opacity-0;
+        }
+
+        .select-option[aria-selected="true"] .select-check {
+            @apply opacity-100;
         }
     </style>
     {% block 'head' %}{% endblock 'head' %}
@@ -84,6 +190,206 @@
     <main>
         {% block 'body' %}{% endblock 'body' %}
     </main>
+
+    <script>
+    (function () {
+        const LAYOUT_RE = /^(w-|min-w-|max-w-|sm:w-|md:w-|lg:w-|mt-|mb-|ml-|mr-|mx-|my-|m-|flex-|shrink-|grow-)/;
+        const CHEVRON = '<svg class="select-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" /></svg>';
+        const CHECK = '<svg class="select-check" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>';
+
+        function splitClasses(select) {
+            const layout = [];
+            const rest = [];
+            (select.className || '').split(/\s+/).filter(Boolean).forEach((c) => {
+                if (c === 'input-field') return;
+                if (LAYOUT_RE.test(c)) layout.push(c);
+                else rest.push(c);
+            });
+            return { layout, rest };
+        }
+
+        function enhanceSelect(select) {
+            if (select.dataset.enhanced === '1') return;
+            select.dataset.enhanced = '1';
+
+            const { layout, rest } = splitClasses(select);
+            const root = document.createElement('div');
+            root.className = ['select-root', ...layout].filter(Boolean).join(' ');
+
+            const trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = ['select-trigger', ...rest].filter(Boolean).join(' ');
+            trigger.setAttribute('aria-haspopup', 'listbox');
+            trigger.setAttribute('aria-expanded', 'false');
+            if (select.id) trigger.id = select.id + '-trigger';
+            if (select.disabled) trigger.disabled = true;
+
+            const labelEl = document.createElement('span');
+            labelEl.className = 'select-label truncate';
+            trigger.appendChild(labelEl);
+            trigger.insertAdjacentHTML('beforeend', CHEVRON);
+
+            const menu = document.createElement('ul');
+            menu.className = 'select-menu';
+            menu.setAttribute('role', 'listbox');
+            if (select.id) menu.id = select.id + '-menu';
+            trigger.setAttribute('aria-controls', menu.id || '');
+
+            select.className = 'select-native';
+            select.parentNode.insertBefore(root, select);
+            root.appendChild(trigger);
+            root.appendChild(menu);
+            root.appendChild(select);
+
+            let open = false;
+            let activeIndex = -1;
+
+            function options() {
+                return Array.from(select.options);
+            }
+
+            function selectedOption() {
+                return select.options[select.selectedIndex] || null;
+            }
+
+            function isPlaceholder(opt) {
+                return !opt || (opt.disabled && !opt.value);
+            }
+
+            function syncLabel() {
+                const opt = selectedOption();
+                const text = opt ? opt.textContent.trim() : '';
+                labelEl.textContent = text || 'Selecionar';
+                trigger.classList.toggle('is-placeholder', isPlaceholder(opt) || !opt?.value);
+            }
+
+            function buildMenu() {
+                menu.innerHTML = '';
+                options().forEach((opt, i) => {
+                    const li = document.createElement('li');
+                    li.className = 'select-option' + (opt.disabled ? ' is-disabled' : '');
+                    li.setAttribute('role', 'option');
+                    li.setAttribute('aria-selected', opt.selected ? 'true' : 'false');
+                    if (opt.disabled) li.setAttribute('aria-disabled', 'true');
+                    li.dataset.index = String(i);
+                    li.innerHTML = CHECK + '<span class="truncate">' + opt.textContent.trim() + '</span>';
+                    if (!opt.disabled) {
+                        li.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            choose(i);
+                        });
+                    }
+                    menu.appendChild(li);
+                });
+            }
+
+            function setActive(index) {
+                const items = menu.querySelectorAll('.select-option:not(.is-disabled)');
+                items.forEach((el) => el.classList.remove('bg-brand-50'));
+                const all = menu.querySelectorAll('.select-option');
+                if (index < 0 || index >= all.length || all[index].classList.contains('is-disabled')) {
+                    activeIndex = -1;
+                    return;
+                }
+                activeIndex = index;
+                all[index].classList.add('bg-brand-50');
+                all[index].scrollIntoView({ block: 'nearest' });
+            }
+
+            function choose(index) {
+                const opt = select.options[index];
+                if (!opt || opt.disabled) return;
+                select.selectedIndex = index;
+                select.dispatchEvent(new Event('input', { bubbles: true }));
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                syncLabel();
+                buildMenu();
+                close();
+                trigger.focus();
+            }
+
+            function openMenu() {
+                if (select.disabled) return;
+                buildMenu();
+                open = true;
+                menu.classList.add('is-open');
+                trigger.setAttribute('aria-expanded', 'true');
+                const sel = select.selectedIndex;
+                setActive(sel >= 0 ? sel : 0);
+            }
+
+            function close() {
+                open = false;
+                menu.classList.remove('is-open');
+                trigger.setAttribute('aria-expanded', 'false');
+                activeIndex = -1;
+            }
+
+            function toggle() {
+                if (open) close();
+                else openMenu();
+            }
+
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggle();
+            });
+
+            trigger.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (!open) {
+                        openMenu();
+                        return;
+                    }
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (activeIndex >= 0) choose(activeIndex);
+                        return;
+                    }
+                    const dir = e.key === 'ArrowDown' ? 1 : -1;
+                    let next = activeIndex;
+                    const opts = options();
+                    for (let n = 0; n < opts.length; n++) {
+                        next = (next + dir + opts.length) % opts.length;
+                        if (!opts[next].disabled) {
+                            setActive(next);
+                            break;
+                        }
+                    }
+                } else if (e.key === 'Escape' && open) {
+                    e.preventDefault();
+                    close();
+                }
+            });
+
+            select.addEventListener('focus', () => {
+                trigger.focus();
+            });
+
+            select.addEventListener('change', syncLabel);
+
+            document.addEventListener('click', (e) => {
+                if (open && !root.contains(e.target)) close();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && open) close();
+            });
+
+            syncLabel();
+        }
+
+        function init() {
+            document.querySelectorAll('select.input-field').forEach(enhanceSelect);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
 </body>
 
 </html>
