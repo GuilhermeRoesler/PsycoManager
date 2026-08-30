@@ -21,14 +21,6 @@
         <p class="mt-2 text-sm text-muted">Aceda à sua área de pacientes</p>
     </div>
 
-    {% if messages %}
-    <div class="mb-4 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg px-3.5 py-2.5 text-sm {{ message.tags }}" role="alert">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     <div class="mb-6 rounded-xl bg-brand-50 px-4 py-3.5 ring-1 ring-inset ring-brand-200">
         <p class="text-xs font-semibold uppercase tracking-wider text-brand-700">Conta demo</p>
         <p class="mt-1 text-sm text-brand-700/90">

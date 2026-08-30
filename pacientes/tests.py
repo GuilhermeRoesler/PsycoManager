@@ -46,6 +46,7 @@ class ConsultaPublicaTests(TestCase):
             pagamento_em_dia=True,
         )
         self.tarefa = Tarefas.objects.create(
+            psicologo=self.user,
             tarefa="Respiração",
             instrucoes="Inspirar e expirar",
             frequencia="D",
@@ -217,13 +218,71 @@ class PacientesViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Maria")
 
-    def test_atualizar_pagamento(self):
+    def test_atualizar_paciente_dados(self):
         url = reverse("atualizar_paciente", kwargs={"id": self.paciente.id})
-        response = self.client.post(url, {"pagamento_em_dia": "inativo"})
+        response = self.client.post(
+            url,
+            {
+                "nome": "Maria Silva",
+                "email": "maria.nova@example.com",
+                "telefone": "11999999999",
+                "queixa": "A",
+                "pagamento_em_dia": "inativo",
+            },
+        )
 
         self.paciente.refresh_from_db()
+        self.assertEqual(self.paciente.nome, "Maria Silva")
+        self.assertEqual(self.paciente.email, "maria.nova@example.com")
+        self.assertEqual(self.paciente.queixa, "A")
         self.assertFalse(self.paciente.pagamento_em_dia)
         self.assertEqual(response.status_code, 302)
+
+    def test_consulta_sem_video(self):
+        url = reverse("paciente_view", kwargs={"id": self.paciente.id})
+        response = self.client.post(
+            url,
+            {"humor": "4", "registro_geral": "Sem gravação"},
+        )
+        self.assertEqual(response.status_code, 302)
+        consulta = Consultas.objects.get(paciente=self.paciente)
+        self.assertFalse(bool(consulta.video))
+
+        publica = self.client.get(reverse("consulta_publica", kwargs={"id": consulta.id}))
+        self.assertEqual(publica.status_code, 200)
+        self.assertContains(publica, "não tem gravação")
+
+    def test_crud_tarefas(self):
+        lista = self.client.get(reverse("tarefas"))
+        self.assertEqual(lista.status_code, 200)
+
+        criar = self.client.post(
+            reverse("tarefas"),
+            {
+                "tarefa": "Diário de gratidão",
+                "instrucoes": "Escrever 3 itens",
+                "frequencia": "D",
+            },
+        )
+        self.assertEqual(criar.status_code, 302)
+        tarefa = Tarefas.objects.get(psicologo=self.user, tarefa="Diário de gratidão")
+
+        editar = self.client.post(
+            reverse("atualizar_tarefa", kwargs={"id": tarefa.id}),
+            {
+                "tarefa": "Diário",
+                "instrucoes": "Escrever 5 itens",
+                "frequencia": "1S",
+            },
+        )
+        self.assertEqual(editar.status_code, 302)
+        tarefa.refresh_from_db()
+        self.assertEqual(tarefa.tarefa, "Diário")
+        self.assertEqual(tarefa.frequencia, "1S")
+
+        excluir = self.client.post(reverse("excluir_tarefa", kwargs={"id": tarefa.id}))
+        self.assertEqual(excluir.status_code, 302)
+        self.assertFalse(Tarefas.objects.filter(id=tarefa.id).exists())
 
     def test_excluir_consulta_exige_post(self):
         consulta = Consultas.objects.create(

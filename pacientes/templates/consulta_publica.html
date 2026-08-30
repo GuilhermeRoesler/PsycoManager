@@ -30,12 +30,18 @@
 
     <section class="mt-10">
         <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Vídeo</h2>
+        {% if consulta.video %}
         <div class="mt-3 overflow-hidden rounded-xl bg-ink shadow-lg shadow-ink/10">
             <video class="aspect-video w-full" controls playsinline>
                 <source src="{{ consulta.video.url }}" type="video/mp4">
                 O seu navegador não suporta vídeo HTML5.
             </video>
         </div>
+        {% else %}
+        <p class="mt-3 rounded-xl bg-white px-4 py-8 text-center text-sm text-muted ring-1 ring-line">
+            Esta sessão não tem gravação de vídeo.
+        </p>
+        {% endif %}
     </section>
 
     <section class="mt-12">

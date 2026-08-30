@@ -227,12 +227,7 @@ class Command(BaseCommand):
             )
             return
 
-        self.stdout.write("A criar tarefas...")
-        tarefas = [
-            Tarefas.objects.create(tarefa=t, instrucoes=i, frequencia=f) for t, i, f in TAREFAS_DEMO
-        ]
-
-        self.stdout.write("A criar conta demo e pacientes...")
+        self.stdout.write("A criar conta demo...")
         User = get_user_model()
         demo_user, created = User.objects.get_or_create(
             username=DEMO_USERNAME,
@@ -246,6 +241,14 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Conta demo criada: {DEMO_USERNAME} / {DEMO_PASSWORD}"))
         else:
             self.stdout.write(f"Conta demo atualizada: {DEMO_USERNAME} / {DEMO_PASSWORD}")
+
+        self.stdout.write("A criar tarefas...")
+        tarefas = [
+            Tarefas.objects.create(psicologo=demo_user, tarefa=t, instrucoes=i, frequencia=f)
+            for t, i, f in TAREFAS_DEMO
+        ]
+
+        self.stdout.write("A criar pacientes...")
 
         pacientes = []
         for idx, (nome, email, telefone, queixa, pagamento) in enumerate(PACIENTES_DEMO):

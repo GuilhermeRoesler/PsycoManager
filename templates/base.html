@@ -186,7 +186,12 @@
                     <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
                 </a>
                 <div class="flex items-center gap-1">
-                    <a href="{% url 'pacientes' %}" class="rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700">Pacientes</a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'pacientes' %}"
+                        class="rounded-lg px-3 py-1.5 text-sm font-semibold transition {% if request.resolver_match.url_name == 'pacientes' or request.resolver_match.url_name == 'paciente_view' %}bg-brand-50 text-brand-700{% else %}text-muted hover:bg-surface hover:text-ink{% endif %}">Pacientes</a>
+                    <a href="{% url 'tarefas' %}"
+                        class="rounded-lg px-3 py-1.5 text-sm font-semibold transition {% if request.resolver_match.url_name == 'tarefas' or request.resolver_match.url_name == 'atualizar_tarefa' %}bg-brand-50 text-brand-700{% else %}text-muted hover:bg-surface hover:text-ink{% endif %}">Tarefas</a>
+                    {% endif %}
                 </div>
             </div>
             <div class="flex items-center gap-2 sm:gap-3">
@@ -206,6 +211,77 @@
     <main>
         {% block 'body' %}{% endblock 'body' %}
     </main>
+
+    <div id="toast-root" class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(100%-2rem,22rem)] flex-col gap-2" aria-live="polite"></div>
+    {% if messages %}
+    <div id="django-messages" class="hidden" aria-hidden="true">
+        {% for message in messages %}
+        <div data-toast-level="{{ message.level_tag }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <script>
+    (function () {
+        const toastRoot = document.getElementById('toast-root');
+
+        window.showToast = function (text, level) {
+            if (!toastRoot || !text) return;
+            const el = document.createElement('div');
+            const isError = level === 'error';
+            el.className = 'pointer-events-auto rounded-lg px-3.5 py-2.5 text-sm shadow-lg ring-1 transition ' +
+                (isError
+                    ? 'bg-red-50 text-red-800 ring-red-600/15'
+                    : 'bg-green-50 text-green-800 ring-green-600/15');
+            el.setAttribute('role', 'status');
+            el.textContent = text;
+            toastRoot.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(0.25rem)';
+                setTimeout(() => el.remove(), 250);
+            }, 4200);
+        };
+
+        const djangoMessages = document.getElementById('django-messages');
+        if (djangoMessages) {
+            djangoMessages.querySelectorAll('[data-toast-level]').forEach((node) => {
+                window.showToast(node.textContent.trim(), node.dataset.toastLevel);
+            });
+        }
+
+        document.querySelectorAll('form[enctype="multipart/form-data"]').forEach((form) => {
+            form.addEventListener('submit', () => {
+                const btn = form.querySelector('button[type="submit"]');
+                if (!btn || btn.disabled) return;
+                btn.disabled = true;
+                btn.dataset.originalLabel = btn.innerHTML;
+                btn.innerHTML = '<span class="inline-block size-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span> A enviar…';
+            });
+        });
+
+        document.querySelectorAll('[data-copy]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const value = btn.getAttribute('data-copy') || '';
+                try {
+                    await navigator.clipboard.writeText(value);
+                    window.showToast('Link copiado', 'success');
+                } catch (_) {
+                    window.showToast('Não foi possível copiar o link', 'error');
+                }
+            });
+        });
+
+        document.querySelectorAll('form[data-confirm]').forEach((form) => {
+            form.addEventListener('submit', (e) => {
+                const msg = form.getAttribute('data-confirm') || 'Confirmar?';
+                if (!window.confirm(msg)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    })();
+    </script>
 
     <script>
     (function () {

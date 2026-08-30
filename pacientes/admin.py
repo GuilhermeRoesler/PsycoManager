@@ -10,5 +10,11 @@ class PacientesAdmin(admin.ModelAdmin):
     search_fields = ("nome", "email")
 
 
+@admin.register(Tarefas)
+class TarefasAdmin(admin.ModelAdmin):
+    list_display = ("tarefa", "psicologo", "frequencia")
+    list_filter = ("frequencia", "psicologo")
+    search_fields = ("tarefa",)
+
+
 admin.site.register(Consultas)
-admin.site.register(Tarefas)

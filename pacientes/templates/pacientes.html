@@ -31,13 +31,7 @@
     </div>
 
     {% if messages %}
-    <div class="mt-6 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg {{ message.tags }} px-3.5 py-2.5 text-sm" role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
+    {# Toasts globais em base.html; aqui só reabre o drawer após erro de cadastro #}
     {% endif %}
 
     {% if tem_pacientes %}

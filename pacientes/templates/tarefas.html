@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Tarefas — PsycoManager{% endblock %}
+
+{% block header_actions %}
+<button type="button" id="btn-abrir-tarefa" class="btn-primary cursor-pointer shrink-0" aria-label="Nova tarefa">
+    <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+    </svg>
+    <span class="hidden sm:inline">Nova tarefa</span>
+</button>
+{% endblock %}
+
+{% block 'body' %}
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+    <div>
+        <h1 class="text-2xl font-semibold tracking-tight text-ink">Tarefas</h1>
+        <p class="mt-1 text-sm text-muted">
+            {% if tarefas %}
+            {{ tarefas|length }} {% if tarefas|length == 1 %}exercício no catálogo{% else %}exercícios no catálogo{% endif %}
+            {% else %}
+            Catálogo vazio — crie tarefas para associar às consultas
+            {% endif %}
+        </p>
+    </div>
+
+    {% if tarefas %}
+    <ul role="list" class="mt-6 divide-y divide-line overflow-hidden rounded-xl bg-white ring-1 ring-line">
+        {% for tarefa in tarefas %}
+        <li class="px-4 py-4 sm:px-5" id="tarefa-{{ tarefa.id }}">
+            <div class="tarefa-view flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <p class="text-sm font-semibold text-ink">{{ tarefa.tarefa }}</p>
+                        <span class="badge bg-brand-50 text-brand-700">{{ tarefa.get_frequencia_display }}</span>
+                    </div>
+                    <p class="mt-1 text-sm leading-relaxed text-muted">{{ tarefa.instrucoes }}</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" class="btn-ghost text-xs cursor-pointer btn-editar-tarefa" data-id="{{ tarefa.id }}">Editar</button>
+                    <form action="{% url 'excluir_tarefa' tarefa.id %}" method="POST" data-confirm="Excluir esta tarefa?">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs font-medium text-red-600 hover:text-red-700 cursor-pointer">Excluir</button>
+                    </form>
+                </div>
+            </div>
+            <form action="{% url 'atualizar_tarefa' tarefa.id %}" method="POST" class="tarefa-edit mt-3 hidden space-y-3 border-t border-line pt-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium text-ink" for="titulo-{{ tarefa.id }}">Título</label>
+                    <input type="text" name="tarefa" id="titulo-{{ tarefa.id }}" required value="{{ tarefa.tarefa }}" class="input-field mt-1.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-ink" for="instrucoes-{{ tarefa.id }}">Instruções</label>
+                    <textarea name="instrucoes" id="instrucoes-{{ tarefa.id }}" required rows="3" class="input-field mt-1.5">{{ tarefa.instrucoes }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-ink" for="freq-{{ tarefa.id }}">Frequência</label>
+                    <select name="frequencia" id="freq-{{ tarefa.id }}" class="input-field mt-1.5">
+                        {% for code, label in frequencias %}
+                        <option value="{{ code }}" {% if tarefa.frequencia == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="btn-primary cursor-pointer">Guardar</button>
+                    <button type="button" class="btn-secondary cursor-pointer btn-cancelar-edicao">Cancelar</button>
+                </div>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="mt-10 flex flex-col items-center justify-center px-6 py-20 text-center">
+        <h2 class="text-base font-semibold text-ink">Nenhuma tarefa ainda</h2>
+        <p class="mt-1 max-w-sm text-sm text-muted">Crie exercícios terapêuticos para associar às sessões dos pacientes.</p>
+        <button type="button" id="btn-abrir-tarefa-empty" class="btn-primary mt-6 cursor-pointer">Nova tarefa</button>
+    </div>
+    {% endif %}
+</div>
+
+<div id="drawer-tarefa-overlay" class="fixed inset-0 z-50 hidden bg-ink/30 backdrop-blur-[2px]" aria-hidden="true"></div>
+<aside id="drawer-tarefa" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" role="dialog" aria-labelledby="drawer-tarefa-titulo" aria-modal="true">
+    <div class="flex items-center justify-between border-b border-line px-5 py-4">
+        <div>
+            <h2 id="drawer-tarefa-titulo" class="text-base font-semibold text-ink">Nova tarefa</h2>
+            <p class="text-xs text-muted">Exercício para o catálogo clínico</p>
+        </div>
+        <button type="button" id="btn-fechar-tarefa" class="btn-ghost -mr-2 cursor-pointer" aria-label="Fechar">
+            <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+            </svg>
+        </button>
+    </div>
+    <form action="{% url 'tarefas' %}" method="POST" class="flex flex-1 flex-col overflow-y-auto">
+        {% csrf_token %}
+        <div class="flex-1 space-y-4 px-5 py-5">
+            <div>
+                <label for="nova-tarefa" class="block text-sm font-medium text-ink">Título</label>
+                <input type="text" name="tarefa" id="nova-tarefa" required class="input-field mt-1.5" placeholder="Ex.: Respiração diafragmática">
+            </div>
+            <div>
+                <label for="nova-instrucoes" class="block text-sm font-medium text-ink">Instruções</label>
+                <textarea name="instrucoes" id="nova-instrucoes" required rows="4" class="input-field mt-1.5" placeholder="Como o paciente deve realizar o exercício…"></textarea>
+            </div>
+            <div>
+                <label for="nova-frequencia" class="block text-sm font-medium text-ink">Frequência</label>
+                <select name="frequencia" id="nova-frequencia" class="input-field mt-1.5">
+                    {% for code, label in frequencias %}
+                    <option value="{{ code }}" {% if code == "D" %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="border-t border-line px-5 py-4">
+            <button type="submit" class="btn-primary w-full cursor-pointer">Criar tarefa</button>
+        </div>
+    </form>
+</aside>
+
+<script>
+(function () {
+    const drawer = document.getElementById('drawer-tarefa');
+    const overlay = document.getElementById('drawer-tarefa-overlay');
+    const openers = [
+        document.getElementById('btn-abrir-tarefa'),
+        document.getElementById('btn-abrir-tarefa-empty'),
+    ].filter(Boolean);
+    const closer = document.getElementById('btn-fechar-tarefa');
+
+    function openDrawer() {
+        overlay.classList.remove('hidden');
+        drawer.classList.remove('translate-x-full');
+        document.body.style.overflow = 'hidden';
+        const campo = document.getElementById('nova-tarefa');
+        if (campo) setTimeout(() => campo.focus(), 280);
+    }
+    function closeDrawer() {
+        overlay.classList.add('hidden');
+        drawer.classList.add('translate-x-full');
+        document.body.style.overflow = '';
+    }
+    openers.forEach((btn) => btn.addEventListener('click', openDrawer));
+    if (closer) closer.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDrawer();
+    });
+
+    {% if messages %}
+    openDrawer();
+    {% endif %}
+
+    document.querySelectorAll('.btn-editar-tarefa').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const li = document.getElementById('tarefa-' + btn.dataset.id);
+            if (!li) return;
+            li.querySelector('.tarefa-view')?.classList.add('hidden');
+            li.querySelector('.tarefa-edit')?.classList.remove('hidden');
+        });
+    });
+    document.querySelectorAll('.btn-cancelar-edicao').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const li = btn.closest('li');
+            if (!li) return;
+            li.querySelector('.tarefa-edit')?.classList.add('hidden');
+            li.querySelector('.tarefa-view')?.classList.remove('hidden');
+        });
+    });
+})();
+</script>
+{% endblock 'body' %}

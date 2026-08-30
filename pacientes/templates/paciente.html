@@ -15,7 +15,6 @@
         Pacientes
     </a>
 
-    {# Perfil #}
     <div class="mt-4 flex flex-col gap-5 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div class="flex items-start gap-4">
             <img class="size-16 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm sm:size-[4.5rem]" src="{{ paciente.foto.url }}" alt="Foto de {{ paciente.nome }}">
@@ -41,36 +40,17 @@
             </div>
         </div>
 
-        <form action="{% url 'atualizar_paciente' paciente.id %}" method="POST" class="flex items-end gap-2 sm:shrink-0">
-            {% csrf_token %}
-            <div>
-                <label for="pagamento_em_dia" class="block text-xs font-medium text-muted">Pagamento</label>
-                <select name="pagamento_em_dia" id="pagamento_em_dia" class="input-field mt-1 w-36">
-                    <option value="ativo" {% if paciente.pagamento_em_dia %}selected{% endif %}>Em dia</option>
-                    <option value="inativo" {% if not paciente.pagamento_em_dia %}selected{% endif %}>Pendente</option>
-                </select>
-            </div>
-            <button type="submit" class="btn-secondary cursor-pointer">Atualizar</button>
-        </form>
+        <button type="button" id="btn-editar-paciente" class="btn-secondary cursor-pointer sm:shrink-0">
+            Editar paciente
+        </button>
     </div>
-
-    {% if messages %}
-    <div class="mt-5 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg {{ message.tags }} px-3.5 py-2.5 text-sm" role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 
     <div class="mt-8 grid gap-10 lg:grid-cols-12 lg:gap-12">
-        {# Formulário consulta #}
         <section class="lg:col-span-5">
             <h2 class="text-base font-semibold text-ink">Registrar consulta</h2>
-            <p class="mt-0.5 text-sm text-muted">Humor, notas, vídeo e exercícios da sessão.</p>
+            <p class="mt-0.5 text-sm text-muted">Humor, notas, vídeo (opcional) e exercícios.</p>
 
-            <form action="{% url 'paciente_view' paciente.id %}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-5">
+            <form id="form-consulta" action="{% url 'paciente_view' paciente.id %}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-5">
                 {% csrf_token %}
 
                 <div>
@@ -98,14 +78,17 @@
                 </div>
 
                 <div>
-                    <label for="video" class="block text-sm font-medium text-ink">Gravação</label>
+                    <label for="video" class="block text-sm font-medium text-ink">Gravação <span class="font-normal text-muted">(opcional)</span></label>
                     <div class="mt-1.5 rounded-lg bg-white px-3 py-3 ring-1 ring-inset ring-line">
-                        <input type="file" required name="video" id="video" accept="video/*" class="file-field">
+                        <input type="file" name="video" id="video" accept="video/*" class="file-field">
                     </div>
                 </div>
 
                 <div>
-                    <span class="block text-sm font-medium text-ink">Exercícios</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="block text-sm font-medium text-ink">Exercícios</span>
+                        <a href="{% url 'tarefas' %}" class="text-xs font-medium text-brand-700 hover:underline">Gerir tarefas</a>
+                    </div>
                     <p class="mt-0.5 text-xs text-muted">Selecione as tarefas para esta sessão.</p>
                     {% if tarefas %}
                     <ul class="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-lg bg-white p-2 ring-1 ring-inset ring-line">
@@ -123,7 +106,7 @@
                     </ul>
                     {% else %}
                     <p class="mt-2 rounded-lg bg-surface px-3 py-4 text-center text-xs text-muted ring-1 ring-inset ring-line">
-                        Nenhuma tarefa no catálogo. Crie-as no admin.
+                        Nenhuma tarefa ainda. <a href="{% url 'tarefas' %}" class="font-medium text-brand-700 hover:underline">Criar no catálogo</a>
                     </p>
                     {% endif %}
                 </div>
@@ -132,7 +115,6 @@
             </form>
         </section>
 
-        {# Histórico + gráfico #}
         <section class="lg:col-span-7 space-y-8">
             <div>
                 <h2 class="text-base font-semibold text-ink">Histórico</h2>
@@ -147,13 +129,17 @@
                                 <span class="size-2 shrink-0 rounded-full {% if consulta.humor >= 3 %}bg-brand-500{% else %}bg-red-500{% endif %}"></span>
                                 <p class="text-sm font-semibold text-ink">{{ consulta.data|date:"d/m/Y H:i" }}</p>
                                 <span class="text-xs tabular-nums text-muted">Humor {{ consulta.humor }}/5</span>
+                                {% if consulta.video %}
+                                <span class="badge bg-surface text-muted ring-1 ring-inset ring-line">Vídeo</span>
+                                {% endif %}
                             </div>
                             <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-4 text-xs text-muted">
-                                <a href="{{ consulta.link_publico }}" target="_blank" rel="noopener" class="font-medium text-brand-700 hover:underline">Abrir link público</a>
+                                <a href="{{ consulta.link_publico }}" target="_blank" rel="noopener" class="font-medium text-brand-700 hover:underline">Abrir</a>
+                                <button type="button" class="font-medium text-brand-700 hover:underline cursor-pointer" data-copy="{{ consulta.link_publico }}">Copiar link</button>
                                 <span>{{ consulta.views }} visualizações</span>
                             </div>
                         </div>
-                        <form action="{% url 'excluir_consulta' consulta.id %}" method="POST" onsubmit="return confirm('Excluir esta consulta?');" class="sm:shrink-0">
+                        <form action="{% url 'excluir_consulta' consulta.id %}" method="POST" data-confirm="Excluir esta consulta?" class="sm:shrink-0">
                             {% csrf_token %}
                             <button type="submit" class="text-xs font-medium text-red-600 transition hover:text-red-700 cursor-pointer">
                                 Excluir
@@ -181,6 +167,63 @@
         </section>
     </div>
 </div>
+
+{# Drawer editar paciente #}
+<div id="drawer-edit-overlay" class="fixed inset-0 z-50 hidden bg-ink/30 backdrop-blur-[2px]" aria-hidden="true"></div>
+<aside id="drawer-editar" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" role="dialog" aria-labelledby="drawer-edit-titulo" aria-modal="true">
+    <div class="flex items-center justify-between border-b border-line px-5 py-4">
+        <div>
+            <h2 id="drawer-edit-titulo" class="text-base font-semibold text-ink">Editar paciente</h2>
+            <p class="text-xs text-muted">Atualize dados e estado de pagamento</p>
+        </div>
+        <button type="button" id="btn-fechar-editar" class="btn-ghost -mr-2 cursor-pointer" aria-label="Fechar">
+            <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+            </svg>
+        </button>
+    </div>
+    <form action="{% url 'atualizar_paciente' paciente.id %}" method="POST" enctype="multipart/form-data" class="flex flex-1 flex-col overflow-y-auto">
+        {% csrf_token %}
+        <div class="flex-1 space-y-4 px-5 py-5">
+            <div>
+                <label for="edit-nome" class="block text-sm font-medium text-ink">Nome</label>
+                <input type="text" name="nome" id="edit-nome" required value="{{ paciente.nome }}" class="input-field mt-1.5">
+            </div>
+            <div>
+                <label for="edit-email" class="block text-sm font-medium text-ink">Email</label>
+                <input type="email" name="email" id="edit-email" required value="{{ paciente.email }}" class="input-field mt-1.5">
+            </div>
+            <div>
+                <label for="edit-telefone" class="block text-sm font-medium text-ink">Telefone</label>
+                <input type="text" name="telefone" id="edit-telefone" value="{{ paciente.telefone|default:'' }}" class="input-field mt-1.5">
+            </div>
+            <div>
+                <label for="edit-queixa" class="block text-sm font-medium text-ink">Queixa</label>
+                <select name="queixa" id="edit-queixa" required class="input-field mt-1.5">
+                    {% for queixa in queixas %}
+                    <option value="{{ queixa.0 }}" {% if paciente.queixa == queixa.0 %}selected{% endif %}>{{ queixa.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="pagamento_em_dia" class="block text-sm font-medium text-ink">Pagamento</label>
+                <select name="pagamento_em_dia" id="pagamento_em_dia" class="input-field mt-1.5">
+                    <option value="ativo" {% if paciente.pagamento_em_dia %}selected{% endif %}>Em dia</option>
+                    <option value="inativo" {% if not paciente.pagamento_em_dia %}selected{% endif %}>Pendente</option>
+                </select>
+            </div>
+            <div>
+                <label for="edit-foto" class="block text-sm font-medium text-ink">Foto <span class="font-normal text-muted">(opcional)</span></label>
+                <div class="mt-1.5 rounded-lg bg-surface px-3 py-3 ring-1 ring-inset ring-line">
+                    <input type="file" name="foto" id="edit-foto" accept="image/*" class="file-field">
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-line px-5 py-4">
+            <button type="submit" class="btn-primary w-full cursor-pointer">Guardar alterações</button>
+        </div>
+    </form>
+</aside>
 
 <script>
 (function () {
@@ -211,6 +254,28 @@
         btn.addEventListener('click', () => syncHumor(btn.dataset.humor));
     });
     syncHumor(humorInput?.value || 3);
+
+    const drawer = document.getElementById('drawer-editar');
+    const overlay = document.getElementById('drawer-edit-overlay');
+    const openBtn = document.getElementById('btn-editar-paciente');
+    const closeBtn = document.getElementById('btn-fechar-editar');
+
+    function openDrawer() {
+        overlay.classList.remove('hidden');
+        drawer.classList.remove('translate-x-full');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer() {
+        overlay.classList.add('hidden');
+        drawer.classList.add('translate-x-full');
+        document.body.style.overflow = '';
+    }
+    if (openBtn) openBtn.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDrawer();
+    });
 
     {% if consultas %}
     const labels = [{% for c in consultas_ordenadas %}"{{ c.data|date:'d/m' }}"{% if not forloop.last %}, {% endif %}{% endfor %}];

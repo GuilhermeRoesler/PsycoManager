@@ -37,6 +37,11 @@ class Tarefas(models.Model):
         ("N", "Ao necessitar"),
     )
 
+    psicologo = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tarefas",
+    )
     tarefa = models.CharField(max_length=255)
     instrucoes = models.TextField()
     frequencia = models.CharField(max_length=2, choices=frequencia_choices, default="D")
@@ -48,7 +53,7 @@ class Tarefas(models.Model):
 class Consultas(models.Model):
     humor = models.PositiveIntegerField()
     registro_geral = models.TextField()
-    video = models.FileField(upload_to="videos")
+    video = models.FileField(upload_to="videos", blank=True, null=True)
     tarefas = models.ManyToManyField(Tarefas)
     paciente = models.ForeignKey(Pacientes, on_delete=models.CASCADE)
     data = models.DateTimeField(auto_now=True)

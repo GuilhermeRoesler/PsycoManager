@@ -162,7 +162,7 @@ def pacientes(request):
 def pacientes_view(request, id):
     paciente = _paciente_do_usuario(request, id)
     if request.method == "GET":
-        tarefas = Tarefas.objects.all()
+        tarefas = Tarefas.objects.filter(psicologo=request.user).order_by("tarefa")
         consultas = Consultas.objects.filter(paciente=paciente).order_by("-data")
         consultas_ordenadas = list(consultas.order_by("data"))
         return render(
@@ -174,6 +174,7 @@ def pacientes_view(request, id):
                 "consultas": consultas,
                 "consultas_ordenadas": consultas_ordenadas,
                 "total_consultas": consultas.count(),
+                "queixas": Pacientes.queixa_choices,
             },
         )
     elif request.method == "POST":
@@ -183,15 +184,21 @@ def pacientes_view(request, id):
         tarefas = request.POST.getlist("tarefas")
 
         consulta = Consultas(
-            humor=int(humor), registro_geral=registro_geral, video=video, paciente=paciente
+            humor=int(humor),
+            registro_geral=registro_geral or "",
+            paciente=paciente,
         )
+        if video:
+            consulta.video = video
         consulta.save()
 
-        for i in tarefas:
-            tarefa = Tarefas.objects.get(id=i)
-            consulta.tarefas.add(tarefa)
-
-        consulta.save()
+        ids_validos = set(
+            Tarefas.objects.filter(psicologo=request.user, id__in=tarefas).values_list(
+                "id", flat=True
+            )
+        )
+        for tarefa_id in ids_validos:
+            consulta.tarefas.add(tarefa_id)
 
         messages.add_message(
             request, constants.SUCCESS, "Registro de consulta adicionado com sucesso"
@@ -202,13 +209,98 @@ def pacientes_view(request, id):
 @login_required
 @require_POST
 def atualizar_paciente(request, id):
-    pagamento_em_dia = request.POST.get("pagamento_em_dia")
     paciente = _paciente_do_usuario(request, id)
-    status = True if pagamento_em_dia == "ativo" else False
-    paciente.pagamento_em_dia = status
+    nome = (request.POST.get("nome") or "").strip()
+    email = (request.POST.get("email") or "").strip()
+    telefone = (request.POST.get("telefone") or "").strip()
+    queixa = request.POST.get("queixa")
+    pagamento_em_dia = request.POST.get("pagamento_em_dia")
+    foto = request.FILES.get("foto")
+
+    if not nome or not email or not queixa:
+        messages.add_message(request, constants.ERROR, "Preencha nome, email e queixa")
+        return redirect("paciente_view", id=id)
+
+    queixa_codes = {c for c, _ in Pacientes.queixa_choices}
+    if queixa not in queixa_codes:
+        messages.add_message(request, constants.ERROR, "Queixa inválida")
+        return redirect("paciente_view", id=id)
+
+    paciente.nome = nome
+    paciente.email = email
+    paciente.telefone = telefone or None
+    paciente.queixa = queixa
+    paciente.pagamento_em_dia = pagamento_em_dia == "ativo"
+    if foto:
+        paciente.foto = foto
     paciente.save()
 
+    messages.add_message(request, constants.SUCCESS, "Dados do paciente atualizados")
     return redirect("paciente_view", id=id)
+
+
+@login_required
+def tarefas_view(request):
+    if request.method == "POST":
+        tarefa = (request.POST.get("tarefa") or "").strip()
+        instrucoes = (request.POST.get("instrucoes") or "").strip()
+        frequencia = request.POST.get("frequencia") or "D"
+        freq_codes = {c for c, _ in Tarefas.frequencia_choices}
+
+        if not tarefa or not instrucoes:
+            messages.add_message(request, constants.ERROR, "Preencha título e instruções")
+        elif frequencia not in freq_codes:
+            messages.add_message(request, constants.ERROR, "Frequência inválida")
+        else:
+            Tarefas.objects.create(
+                psicologo=request.user,
+                tarefa=tarefa,
+                instrucoes=instrucoes,
+                frequencia=frequencia,
+            )
+            messages.add_message(request, constants.SUCCESS, "Tarefa criada")
+        return redirect("tarefas")
+
+    lista = Tarefas.objects.filter(psicologo=request.user).order_by("tarefa")
+    return render(
+        request,
+        "tarefas.html",
+        {
+            "tarefas": lista,
+            "frequencias": Tarefas.frequencia_choices,
+        },
+    )
+
+
+@login_required
+@require_POST
+def atualizar_tarefa(request, id):
+    tarefa_obj = get_object_or_404(Tarefas, id=id, psicologo=request.user)
+    titulo = (request.POST.get("tarefa") or "").strip()
+    instrucoes = (request.POST.get("instrucoes") or "").strip()
+    frequencia = request.POST.get("frequencia") or "D"
+    freq_codes = {c for c, _ in Tarefas.frequencia_choices}
+
+    if not titulo or not instrucoes:
+        messages.add_message(request, constants.ERROR, "Preencha título e instruções")
+    elif frequencia not in freq_codes:
+        messages.add_message(request, constants.ERROR, "Frequência inválida")
+    else:
+        tarefa_obj.tarefa = titulo
+        tarefa_obj.instrucoes = instrucoes
+        tarefa_obj.frequencia = frequencia
+        tarefa_obj.save()
+        messages.add_message(request, constants.SUCCESS, "Tarefa atualizada")
+    return redirect("tarefas")
+
+
+@login_required
+@require_POST
+def excluir_tarefa(request, id):
+    tarefa_obj = get_object_or_404(Tarefas, id=id, psicologo=request.user)
+    tarefa_obj.delete()
+    messages.add_message(request, constants.SUCCESS, "Tarefa excluída")
+    return redirect("tarefas")
 
 
 @login_required

@@ -21,14 +21,6 @@
         <p class="mt-2 text-sm text-muted">Comece com a sua própria lista de pacientes</p>
     </div>
 
-    {% if messages %}
-    <div class="mb-4 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg px-3.5 py-2.5 text-sm {{ message.tags }}" role="alert">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     <form method="post" action="{% url 'registo' %}" class="space-y-4">
         {% csrf_token %}
         <div>
