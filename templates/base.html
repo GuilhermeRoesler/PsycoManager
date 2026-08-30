@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -5,6 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PsycoManager{% endblock %}</title>
+    <meta name="theme-color" content="#1f7a6f">
+    <meta name="application-name" content="PsycoManager">
+    <link rel="icon" href="{% static 'favicon.ico' %}" sizes="any">
+    <link rel="icon" href="{% static 'img/logo.svg' %}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+    <link rel="manifest" href="{% static 'site.webmanifest' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -175,7 +182,7 @@
         <nav class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6" aria-label="Principal">
             <div class="flex items-center gap-8">
                 <a href="{% url 'pacientes' %}" class="flex items-center gap-2.5">
-                    <span class="flex size-8 items-center justify-center rounded-lg bg-brand-600 text-xs font-bold text-white">P</span>
+                    <img src="{% static 'img/logo.png' %}" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
                     <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
                 </a>
                 <div class="hidden items-center gap-1 sm:flex">

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Consulta — {{ consulta.paciente.nome }}{% endblock %}
 
@@ -6,7 +7,7 @@
 <header class="border-b border-line/80 bg-white">
     <div class="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6">
         <div class="flex items-center gap-2.5">
-            <span class="flex size-8 items-center justify-center rounded-lg bg-brand-600 text-xs font-bold text-white">P</span>
+            <img src="{% static 'img/logo.png' %}" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
             <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
         </div>
         <p class="text-xs font-medium uppercase tracking-wider text-muted">Área do paciente</p>
