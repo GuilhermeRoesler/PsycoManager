@@ -2,7 +2,7 @@
 
 O **PsycoManager** é um sistema web desenvolvido em Django para auxiliar psicólogos na gestão dos seus pacientes, consultas e tarefas terapêuticas. O sistema permite o registo detalhado de sessões, incluindo o upload de gravações de vídeo, notas de registo geral e acompanhamento do humor do paciente.
 
-![](images/demo.png)
+![](docs/screenshots/demo.webp)
 
 ## Demo rápida (GitHub Pages)
 

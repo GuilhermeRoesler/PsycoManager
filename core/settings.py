@@ -166,6 +166,10 @@ STORAGES = {
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
+# Fotos de pacientes: validação extra em pacientes.imagens (máx. 5 MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True

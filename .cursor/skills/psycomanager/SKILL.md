@@ -96,12 +96,13 @@ Raiz: redirect → `pacientes`, `/admin/`, media em DEBUG. Credenciais demo: `de
 ## Features existentes
 
 1. Auth básica: login (com conta demo visível), registo, logout
-2. Listar / cadastrar pacientes (foto obrigatória no create atual; scoped ao `request.user`)
-3. Detalhe do paciente: toggle pagamento, nova consulta, histórico
-4. Consulta: humor, notas, vídeo, tarefas M2M
-5. Consulta pública partilhável (vídeo + tarefas; **sem** `registro_geral`; sem login)
-6. Contagem de visualizações (total + IPs únicos)
-7. Admin para Pacientes, Consultas, Tarefas
+2. Listar / cadastrar pacientes (foto obrigatória no create; scoped ao `request.user`)
+3. Fotos otimizadas no upload (`pacientes/imagens.py`): validação (≤5 MB, JPEG/PNG/WebP/GIF), resize máx. 512px, WebP + variantes 40/80/128 (`srcset`); logo UI em SVG
+4. Detalhe do paciente: toggle pagamento, nova consulta, histórico
+5. Consulta: humor, notas, vídeo, tarefas M2M
+6. Consulta pública partilhável (vídeo + tarefas; **sem** `registro_geral`; sem login; meta OG/Twitter)
+7. Contagem de visualizações (total + IPs únicos)
+8. Admin para Pacientes, Consultas, Tarefas
 
 ## Regras de domínio
 

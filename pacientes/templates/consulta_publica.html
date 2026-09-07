@@ -3,11 +3,30 @@
 
 {% block title %}Consulta — {{ consulta.paciente.nome }} — PsycoManager{% endblock %}
 
+{% block extra_head %}
+<meta name="description" content="Sessão de {{ consulta.paciente.nome }} em {{ consulta.data|date:'d/m/Y' }} — PsycoManager.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PsycoManager">
+<meta property="og:title" content="Consulta — {{ consulta.paciente.nome }}">
+<meta property="og:description" content="Sessão de {{ consulta.paciente.nome }} em {{ consulta.data|date:'d/m/Y' }}.">
+<meta property="og:url" content="{{ og_url }}">
+{% if og_image %}
+<meta property="og:image" content="{{ og_image }}">
+<meta property="og:image:alt" content="Foto de {{ consulta.paciente.nome }}">
+{% endif %}
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Consulta — {{ consulta.paciente.nome }}">
+<meta name="twitter:description" content="Sessão de {{ consulta.paciente.nome }} em {{ consulta.data|date:'d/m/Y' }}.">
+{% if og_image %}
+<meta name="twitter:image" content="{{ og_image }}">
+{% endif %}
+{% endblock %}
+
 {% block header %}
 <header class="border-b border-line/80 bg-white">
     <div class="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6">
         <div class="flex items-center gap-2.5">
-            <img src="{% static 'img/logo.png' %}" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
+            <img src="{% static 'img/logo.svg' %}" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async" fetchpriority="high">
             <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
         </div>
         <p class="text-xs font-medium uppercase tracking-wider text-muted">Área do paciente</p>
@@ -19,7 +38,16 @@
 <div class="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
     <header class="text-center sm:text-left">
         <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
-            <img class="size-16 rounded-full object-cover ring-2 ring-white shadow-sm" src="{{ consulta.paciente.foto.url }}" alt="Foto de {{ consulta.paciente.nome }}">
+            <img
+                class="size-16 rounded-full object-cover ring-2 ring-white shadow-sm"
+                src="{{ consulta.paciente.foto_url_80 }}"
+                srcset="{{ consulta.paciente.foto_srcset }}"
+                sizes="64px"
+                width="64"
+                height="64"
+                alt="Foto de {{ consulta.paciente.nome }}"
+                decoding="async"
+            >
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">Sua sessão</p>
                 <h1 class="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{{ consulta.paciente.nome }}</h1>

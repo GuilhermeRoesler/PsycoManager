@@ -1,6 +1,18 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
+
+from .imagens import (
+    FOTO_MAX_LADO,
+    FOTO_VARIANTES,
+    FotoInvalida,
+    apagar_foto_e_variantes,
+    caminho_variante,
+    gerar_variantes,
+    otimizar_foto,
+    validar_foto,
+)
 
 
 # Create your models here.
@@ -26,6 +38,66 @@ class Pacientes(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def _foto_nova(self) -> bool:
+        return bool(self.foto) and not getattr(self.foto, "_committed", True)
+
+    def foto_url_variante(self, tamanho: int) -> str:
+        if not self.foto:
+            return ""
+        caminho = caminho_variante(self.foto.name, tamanho)
+        if self.foto.storage.exists(caminho):
+            return self.foto.storage.url(caminho)
+        return self.foto.url
+
+    @property
+    def foto_url_40(self) -> str:
+        return self.foto_url_variante(40)
+
+    @property
+    def foto_url_80(self) -> str:
+        return self.foto_url_variante(80)
+
+    @property
+    def foto_url_128(self) -> str:
+        return self.foto_url_variante(128)
+
+    @property
+    def foto_srcset(self) -> str:
+        if not self.foto:
+            return ""
+        partes = [f"{self.foto_url_variante(t)} {t}w" for t in FOTO_VARIANTES]
+        partes.append(f"{self.foto.url} {FOTO_MAX_LADO}w")
+        return ", ".join(partes)
+
+    def save(self, *args, **kwargs):
+        foto_nova = self._foto_nova()
+        foto_antiga = None
+        if self.pk and foto_nova:
+            foto_antiga = (
+                Pacientes.objects.filter(pk=self.pk)
+                .values_list("foto", flat=True)
+                .first()
+            )
+
+        if foto_nova:
+            try:
+                validar_foto(self.foto)
+                self.foto = otimizar_foto(self.foto)
+            except FotoInvalida as exc:
+                raise ValidationError({"foto": str(exc)}) from exc
+
+        super().save(*args, **kwargs)
+
+        if foto_nova and self.foto:
+            gerar_variantes(self.foto.name)
+            if foto_antiga and foto_antiga != self.foto.name:
+                apagar_foto_e_variantes(foto_antiga)
+
+    def delete(self, *args, **kwargs):
+        nome_foto = self.foto.name if self.foto else None
+        super().delete(*args, **kwargs)
+        apagar_foto_e_variantes(nome_foto)
 
 
 class Tarefas(models.Model):

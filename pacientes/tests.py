@@ -7,17 +7,80 @@ from django.urls import reverse
 from PIL import Image
 
 from .demo_auth import DEMO_PASSWORD, DEMO_USERNAME
+from .imagens import FOTO_MAX_BYTES, FOTO_VARIANTES, FotoInvalida, caminho_variante, validar_foto
 from .models import Consultas, Pacientes, Tarefas, Visualizacoes
 
 
-def _imagem_teste(nome="foto.jpg"):
+def _imagem_teste(nome="foto.jpg", tamanho=(400, 300)):
     buffer = BytesIO()
-    Image.new("RGB", (10, 10), color="red").save(buffer, format="JPEG")
+    Image.new("RGB", tamanho, color="red").save(buffer, format="JPEG")
     return SimpleUploadedFile(nome, buffer.getvalue(), content_type="image/jpeg")
 
 
 def _video_teste(nome="video.mp4"):
     return SimpleUploadedFile(nome, b"fake-video-bytes", content_type="video/mp4")
+
+
+class FotoOtimizacaoTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("psico", password="senha123")
+
+    def test_save_converte_webp_e_gera_variantes(self):
+        paciente = Pacientes.objects.create(
+            psicologo=self.user,
+            nome="Ana",
+            email="ana@example.com",
+            queixa="A",
+            foto=_imagem_teste("retrato.jpg", tamanho=(1200, 800)),
+        )
+        self.assertTrue(paciente.foto.name.endswith(".webp"))
+        with paciente.foto.open("rb") as f:
+            with Image.open(f) as img:
+                self.assertEqual(img.format, "WEBP")
+                self.assertLessEqual(max(img.size), 512)
+
+        for tamanho in FOTO_VARIANTES:
+            caminho = caminho_variante(paciente.foto.name, tamanho)
+            self.assertTrue(paciente.foto.storage.exists(caminho))
+
+        self.assertIn("40w", paciente.foto_srcset)
+        self.assertTrue(paciente.foto_url_40)
+
+    def test_rejeita_ficheiro_nao_imagem(self):
+        ficheiro = SimpleUploadedFile("x.txt", b"nao-e-imagem", content_type="text/plain")
+        with self.assertRaises(FotoInvalida):
+            validar_foto(ficheiro)
+
+    def test_rejeita_ficheiro_demasiado_grande(self):
+        ficheiro = SimpleUploadedFile(
+            "grande.jpg",
+            b"x" * (FOTO_MAX_BYTES + 1),
+            content_type="image/jpeg",
+        )
+        with self.assertRaises(FotoInvalida):
+            validar_foto(ficheiro)
+
+    def test_consulta_publica_tem_meta_og(self):
+        paciente = Pacientes.objects.create(
+            psicologo=self.user,
+            nome="João",
+            email="joao@example.com",
+            queixa="A",
+            foto=_imagem_teste(),
+            pagamento_em_dia=True,
+        )
+        consulta = Consultas.objects.create(
+            humor=4,
+            registro_geral="privado",
+            paciente=paciente,
+        )
+        url = reverse("consulta_publica", kwargs={"id": consulta.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'property="og:title"')
+        self.assertContains(response, 'property="og:image"')
+        self.assertContains(response, 'name="twitter:card"')
+        self.assertContains(response, "srcset=")
 
 
 class PacientesModelTests(TestCase):

@@ -65,7 +65,17 @@
             <li>
                 <a href="{% url 'paciente_view' paciente.id %}"
                     class="flex items-center gap-3 px-4 py-3 transition hover:bg-surface/80 sm:gap-4 sm:px-5">
-                    <img class="size-10 shrink-0 rounded-full object-cover ring-1 ring-line" src="{{ paciente.foto.url }}" alt="">
+                    <img
+                        class="size-10 shrink-0 rounded-full object-cover ring-1 ring-line"
+                        src="{{ paciente.foto_url_40 }}"
+                        srcset="{{ paciente.foto_srcset }}"
+                        sizes="40px"
+                        width="40"
+                        height="40"
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                    >
                     <div class="min-w-0 flex-1">
                         <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                             <p class="truncate text-sm font-semibold text-ink">{{ paciente.nome }}</p>
@@ -180,7 +190,7 @@
             <div>
                 <label for="foto" class="block text-sm font-medium text-ink">Foto</label>
                 <div class="mt-1.5 rounded-lg bg-surface px-3 py-3 ring-1 ring-inset ring-line">
-                    <input type="file" required name="foto" id="foto" accept="image/*" class="file-field">
+                    <input type="file" required name="foto" id="foto" accept="image/jpeg,image/png,image/webp,image/gif" class="file-field">
                 </div>
             </div>
         </div>

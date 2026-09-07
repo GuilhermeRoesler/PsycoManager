@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.messages import constants
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import Http404
@@ -10,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .demo_auth import DEMO_PASSWORD, DEMO_USERNAME
+from .imagens import FotoInvalida, validar_foto
 from .models import Consultas, Pacientes, Tarefas, Visualizacoes
 
 PACIENTES_POR_PAGINA = 20
@@ -141,6 +144,12 @@ def pacientes(request):
             messages.add_message(request, constants.ERROR, "Preencha todos os campos")
             return redirect("pacientes")
 
+        try:
+            validar_foto(foto)
+        except FotoInvalida as exc:
+            messages.add_message(request, constants.ERROR, str(exc))
+            return redirect("pacientes")
+
         paciente = Pacientes(
             psicologo=request.user,
             nome=nome,
@@ -150,7 +159,13 @@ def pacientes(request):
             foto=foto,
         )
 
-        paciente.save()
+        try:
+            paciente.save()
+        except ValidationError as exc:
+            msg = "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)
+            messages.add_message(request, constants.ERROR, msg)
+            return redirect("pacientes")
+
         messages.add_message(request, constants.SUCCESS, "Cadastro realizado com sucesso")
 
         return redirect("pacientes")
@@ -224,6 +239,13 @@ def atualizar_paciente(request, id):
         messages.add_message(request, constants.ERROR, "Queixa inválida")
         return redirect("paciente_view", id=id)
 
+    if foto:
+        try:
+            validar_foto(foto)
+        except FotoInvalida as exc:
+            messages.add_message(request, constants.ERROR, str(exc))
+            return redirect("paciente_view", id=id)
+
     paciente.nome = nome
     paciente.email = email
     paciente.telefone = telefone or None
@@ -231,7 +253,13 @@ def atualizar_paciente(request, id):
     paciente.pagamento_em_dia = pagamento_em_dia == "ativo"
     if foto:
         paciente.foto = foto
-    paciente.save()
+
+    try:
+        paciente.save()
+    except ValidationError as exc:
+        msg = "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)
+        messages.add_message(request, constants.ERROR, msg)
+        return redirect("paciente_view", id=id)
 
     messages.add_message(request, constants.SUCCESS, "Dados do paciente atualizados")
     return redirect("paciente_view", id=id)
@@ -317,4 +345,14 @@ def consulta_publica(request, id):
         raise Http404("Consulta não pública")
 
     Visualizacoes.objects.create(consulta=consulta, ip=request.META.get("REMOTE_ADDR"))
-    return render(request, "consulta_publica.html", {"consulta": consulta})
+    foto_path = consulta.paciente.foto.url if consulta.paciente.foto else ""
+    og_image = f"{settings.PUBLIC_BASE_URL}{foto_path}" if foto_path else ""
+    return render(
+        request,
+        "consulta_publica.html",
+        {
+            "consulta": consulta,
+            "og_image": og_image,
+            "og_url": f"{settings.PUBLIC_BASE_URL}{request.path}",
+        },
+    )

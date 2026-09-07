@@ -262,7 +262,7 @@ class Command(BaseCommand):
                 queixa=queixa,
                 pagamento_em_dia=pagamento,
             )
-            p.foto.save(f"demo_{idx + 1:02d}.png", _gerar_foto(nome, idx), save=False)
+            p.foto = _gerar_foto(nome, idx)
             p.save()
             pacientes.append(p)
 

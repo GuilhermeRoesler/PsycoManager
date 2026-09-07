@@ -17,7 +17,16 @@
 
     <div class="mt-4 flex flex-col gap-5 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div class="flex items-start gap-4">
-            <img class="size-16 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm sm:size-[4.5rem]" src="{{ paciente.foto.url }}" alt="Foto de {{ paciente.nome }}">
+            <img
+                class="size-16 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm sm:size-[4.5rem]"
+                src="{{ paciente.foto_url_80 }}"
+                srcset="{{ paciente.foto_srcset }}"
+                sizes="(min-width: 640px) 72px, 64px"
+                width="72"
+                height="72"
+                alt="Foto de {{ paciente.nome }}"
+                decoding="async"
+            >
             <div class="min-w-0">
                 <h1 class="text-2xl font-semibold tracking-tight text-ink">{{ paciente.nome }}</h1>
                 <p class="mt-1 text-sm text-muted">{{ paciente.get_queixa_display }} · {{ paciente.email }}{% if paciente.telefone %} · {{ paciente.telefone }}{% endif %}</p>
@@ -215,7 +224,7 @@
             <div>
                 <label for="edit-foto" class="block text-sm font-medium text-ink">Foto <span class="font-normal text-muted">(opcional)</span></label>
                 <div class="mt-1.5 rounded-lg bg-surface px-3 py-3 ring-1 ring-inset ring-line">
-                    <input type="file" name="foto" id="edit-foto" accept="image/*" class="file-field">
+                    <input type="file" name="foto" id="edit-foto" accept="image/jpeg,image/png,image/webp,image/gif" class="file-field">
                 </div>
             </div>
         </div>
