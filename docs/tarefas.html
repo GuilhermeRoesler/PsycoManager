@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tarefas — PsycoManager</title>
+  <meta name="theme-color" content="#1f7a6f">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <script src="js/styles.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/common.js"></script>
+</head>
+<body class="antialiased">
+  <header class="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur-md">
+    <nav class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6" aria-label="Principal">
+      <div class="flex items-center gap-8">
+        <a href="pacientes.html" class="flex items-center gap-2.5">
+          <img src="assets/img/logo.png" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
+          <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
+        </a>
+        <div class="flex items-center gap-1">
+          <a href="pacientes.html" class="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted transition hover:bg-surface hover:text-ink">Pacientes</a>
+          <a href="tarefas.html" class="rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700">Tarefas</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span class="hidden text-sm text-muted sm:inline">demo</span>
+        <button type="button" id="btn-sair" class="btn-ghost">Sair</button>
+        <button type="button" id="btn-abrir-tarefa" class="btn-primary cursor-pointer shrink-0" aria-label="Nova tarefa">
+          <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+          <span class="hidden sm:inline">Nova tarefa</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight text-ink">Tarefas</h1>
+        <p class="mt-1 text-sm text-muted" id="subtitulo">—</p>
+      </div>
+      <div id="lista" class="mt-6"></div>
+    </div>
+  </main>
+
+  <div id="drawer-tarefa-overlay" class="fixed inset-0 z-50 hidden bg-ink/30 backdrop-blur-[2px]" aria-hidden="true"></div>
+  <aside id="drawer-tarefa" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-between border-b border-line px-5 py-4">
+      <div>
+        <h2 class="text-base font-semibold text-ink">Nova tarefa</h2>
+        <p class="text-xs text-muted">Exercício para o catálogo clínico</p>
+      </div>
+      <button type="button" id="btn-fechar-tarefa" class="btn-ghost -mr-2 cursor-pointer" aria-label="Fechar">
+        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
+      </button>
+    </div>
+    <form id="form-nova-tarefa" class="flex flex-1 flex-col overflow-y-auto">
+      <div class="flex-1 space-y-4 px-5 py-5">
+        <div>
+          <label for="nova-tarefa" class="block text-sm font-medium text-ink">Título</label>
+          <input type="text" id="nova-tarefa" required class="input-field mt-1.5" placeholder="Ex.: Respiração diafragmática">
+        </div>
+        <div>
+          <label for="nova-instrucoes" class="block text-sm font-medium text-ink">Instruções</label>
+          <textarea id="nova-instrucoes" required rows="4" class="input-field mt-1.5" placeholder="Como o paciente deve realizar o exercício…"></textarea>
+        </div>
+        <div>
+          <label for="nova-frequencia" class="block text-sm font-medium text-ink">Frequência</label>
+          <select id="nova-frequencia" class="input-field mt-1.5"></select>
+        </div>
+      </div>
+      <div class="border-t border-line px-5 py-4">
+        <button type="submit" class="btn-primary w-full cursor-pointer">Criar tarefa</button>
+      </div>
+    </form>
+  </aside>
+
+  <div id="toast-root" class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(100%-2rem,22rem)] flex-col gap-2" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    if (!window.DemoAuth.require()) return;
+
+    const freqSel = document.getElementById("nova-frequencia");
+    window.DEMO_SEED.FREQ_CHOICES.forEach(function (pair) {
+      const o = document.createElement("option");
+      o.value = pair[0];
+      o.textContent = pair[1];
+      if (pair[0] === "D") o.selected = true;
+      freqSel.appendChild(o);
+    });
+
+    window.DemoUI.wireDrawer({
+      drawerId: "drawer-tarefa",
+      overlayId: "drawer-tarefa-overlay",
+      openerIds: ["btn-abrir-tarefa"],
+      closerId: "btn-fechar-tarefa",
+      focusId: "nova-tarefa",
+    });
+
+    function freqOptions(selected) {
+      return window.DEMO_SEED.FREQ_CHOICES.map(function (pair) {
+        return (
+          '<option value="' +
+          pair[0] +
+          '"' +
+          (pair[0] === selected ? " selected" : "") +
+          ">" +
+          pair[1] +
+          "</option>"
+        );
+      }).join("");
+    }
+
+    function render() {
+      const state = window.DemoStore.get();
+      const tarefas = state.tarefas;
+      document.getElementById("subtitulo").textContent = tarefas.length
+        ? tarefas.length +
+          (tarefas.length === 1 ? " exercício no catálogo" : " exercícios no catálogo")
+        : "Catálogo vazio — crie tarefas para associar às consultas";
+
+      const lista = document.getElementById("lista");
+      if (!tarefas.length) {
+        lista.innerHTML =
+          '<div class="mt-10 flex flex-col items-center justify-center px-6 py-20 text-center">' +
+          '<h2 class="text-base font-semibold text-ink">Nenhuma tarefa ainda</h2>' +
+          '<p class="mt-1 max-w-sm text-sm text-muted">Crie exercícios terapêuticos para associar às sessões dos pacientes.</p>' +
+          '<button type="button" id="btn-abrir-tarefa-empty" class="btn-primary mt-6 cursor-pointer">Nova tarefa</button></div>';
+        document.getElementById("btn-abrir-tarefa-empty").addEventListener("click", function () {
+          window.DemoUI.openDrawer(
+            document.getElementById("drawer-tarefa"),
+            document.getElementById("drawer-tarefa-overlay")
+          );
+        });
+        return;
+      }
+
+      lista.innerHTML =
+        '<ul role="list" class="divide-y divide-line overflow-hidden rounded-xl bg-white ring-1 ring-line">' +
+        tarefas
+          .map(function (t) {
+            return (
+              '<li class="px-4 py-4 sm:px-5" id="tarefa-' +
+              t.id +
+              '">' +
+              '<div class="tarefa-view flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">' +
+              '<div class="min-w-0"><div class="flex flex-wrap items-center gap-2">' +
+              '<p class="text-sm font-semibold text-ink">' +
+              t.tarefa +
+              '</p><span class="badge bg-brand-50 text-brand-700">' +
+              window.DemoFmt.freq(t.frequencia) +
+              '</span></div><p class="mt-1 text-sm leading-relaxed text-muted">' +
+              t.instrucoes +
+              '</p></div><div class="flex shrink-0 items-center gap-2">' +
+              '<button type="button" class="btn-ghost text-xs cursor-pointer btn-editar" data-id="' +
+              t.id +
+              '">Editar</button>' +
+              '<button type="button" class="text-xs font-medium text-red-600 hover:text-red-700 cursor-pointer btn-excluir" data-id="' +
+              t.id +
+              '">Excluir</button></div></div>' +
+              '<form class="tarefa-edit mt-3 hidden space-y-3 border-t border-line pt-4" data-id="' +
+              t.id +
+              '">' +
+              '<div><label class="block text-sm font-medium text-ink">Título</label>' +
+              '<input type="text" name="tarefa" required value="' +
+              t.tarefa.replace(/"/g, "&quot;") +
+              '" class="input-field mt-1.5"></div>' +
+              '<div><label class="block text-sm font-medium text-ink">Instruções</label>' +
+              '<textarea name="instrucoes" required rows="3" class="input-field mt-1.5">' +
+              t.instrucoes +
+              "</textarea></div>" +
+              '<div><label class="block text-sm font-medium text-ink">Frequência</label>' +
+              '<select name="frequencia" class="input-field mt-1.5">' +
+              freqOptions(t.frequencia) +
+              "</select></div>" +
+              '<div class="flex gap-2"><button type="submit" class="btn-primary cursor-pointer">Guardar</button>' +
+              '<button type="button" class="btn-secondary cursor-pointer btn-cancelar">Cancelar</button></div></form></li>'
+            );
+          })
+          .join("") +
+        "</ul>";
+
+      // Re-enhance new selects
+      document.querySelectorAll("select.input-field").forEach(function (sel) {
+        sel.dataset.enhanced = "";
+      });
+      // Trigger enhance from common — call manually by dispatching
+      document.querySelectorAll(".tarefa-edit select.input-field").forEach(function (sel) {
+        // leave native for edit forms to keep it simple
+      });
+
+      lista.querySelectorAll(".btn-editar").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const li = document.getElementById("tarefa-" + btn.dataset.id);
+          li.querySelector(".tarefa-view").classList.add("hidden");
+          li.querySelector(".tarefa-edit").classList.remove("hidden");
+        });
+      });
+      lista.querySelectorAll(".btn-cancelar").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const li = btn.closest("li");
+          li.querySelector(".tarefa-edit").classList.add("hidden");
+          li.querySelector(".tarefa-view").classList.remove("hidden");
+        });
+      });
+      lista.querySelectorAll(".btn-excluir").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          if (!confirm("Excluir esta tarefa?")) return;
+          const tid = Number(btn.dataset.id);
+          window.DemoStore.update(function (s) {
+            s.tarefas = s.tarefas.filter(function (t) {
+              return t.id !== tid;
+            });
+          });
+          window.showToast("Tarefa excluída", "success");
+          render();
+        });
+      });
+      lista.querySelectorAll(".tarefa-edit").forEach(function (form) {
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const tid = Number(form.dataset.id);
+          const titulo = form.querySelector('[name="tarefa"]').value.trim();
+          const instrucoes = form.querySelector('[name="instrucoes"]').value.trim();
+          const frequencia = form.querySelector('[name="frequencia"]').value;
+          window.DemoStore.update(function (s) {
+            const t = s.tarefas.find(function (x) {
+              return x.id === tid;
+            });
+            if (!t) return;
+            t.tarefa = titulo;
+            t.instrucoes = instrucoes;
+            t.frequencia = frequencia;
+          });
+          window.showToast("Tarefa atualizada", "success");
+          render();
+        });
+      });
+    }
+
+    document.getElementById("form-nova-tarefa").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const titulo = document.getElementById("nova-tarefa").value.trim();
+      const instrucoes = document.getElementById("nova-instrucoes").value.trim();
+      const frequencia = document.getElementById("nova-frequencia").value;
+      window.DemoStore.update(function (s) {
+        s.tarefas.push({
+          id: s.nextIds.tarefa++,
+          tarefa: titulo,
+          instrucoes: instrucoes,
+          frequencia: frequencia,
+        });
+      });
+      window.DemoUI.closeDrawer(
+        document.getElementById("drawer-tarefa"),
+        document.getElementById("drawer-tarefa-overlay")
+      );
+      e.target.reset();
+      document.getElementById("nova-frequencia").value = "D";
+      window.showToast("Tarefa criada (só nesta demo)", "success");
+      render();
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>

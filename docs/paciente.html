@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paciente — PsycoManager</title>
+  <meta name="theme-color" content="#1f7a6f">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script src="js/styles.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/common.js"></script>
+</head>
+<body class="antialiased">
+  <header class="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur-md">
+    <nav class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6" aria-label="Principal">
+      <div class="flex items-center gap-8">
+        <a href="pacientes.html" class="flex items-center gap-2.5">
+          <img src="assets/img/logo.png" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
+          <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
+        </a>
+        <div class="flex items-center gap-1">
+          <a href="pacientes.html" class="rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700">Pacientes</a>
+          <a href="tarefas.html" class="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted transition hover:bg-surface hover:text-ink">Tarefas</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span class="hidden text-sm text-muted sm:inline">demo</span>
+        <button type="button" id="btn-sair" class="btn-ghost">Sair</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8" id="app"></div>
+  </main>
+
+  <div id="drawer-edit-overlay" class="fixed inset-0 z-50 hidden bg-ink/30 backdrop-blur-[2px]" aria-hidden="true"></div>
+  <aside id="drawer-editar" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-between border-b border-line px-5 py-4">
+      <div>
+        <h2 class="text-base font-semibold text-ink">Editar paciente</h2>
+        <p class="text-xs text-muted">Atualize dados e estado de pagamento</p>
+      </div>
+      <button type="button" id="btn-fechar-editar" class="btn-ghost -mr-2 cursor-pointer" aria-label="Fechar">
+        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
+      </button>
+    </div>
+    <form id="form-editar" class="flex flex-1 flex-col overflow-y-auto">
+      <div class="flex-1 space-y-4 px-5 py-5">
+        <div>
+          <label for="edit-nome" class="block text-sm font-medium text-ink">Nome</label>
+          <input type="text" id="edit-nome" required class="input-field mt-1.5">
+        </div>
+        <div>
+          <label for="edit-email" class="block text-sm font-medium text-ink">Email</label>
+          <input type="email" id="edit-email" required class="input-field mt-1.5">
+        </div>
+        <div>
+          <label for="edit-telefone" class="block text-sm font-medium text-ink">Telefone</label>
+          <input type="text" id="edit-telefone" class="input-field mt-1.5">
+        </div>
+        <div>
+          <label for="edit-queixa" class="block text-sm font-medium text-ink">Queixa</label>
+          <select id="edit-queixa" required class="input-field mt-1.5"></select>
+        </div>
+        <div>
+          <label for="pagamento_em_dia" class="block text-sm font-medium text-ink">Pagamento</label>
+          <select id="pagamento_em_dia" class="input-field mt-1.5">
+            <option value="ativo">Em dia</option>
+            <option value="inativo">Pendente</option>
+          </select>
+        </div>
+      </div>
+      <div class="border-t border-line px-5 py-4">
+        <button type="submit" class="btn-primary w-full cursor-pointer">Guardar alterações</button>
+      </div>
+    </form>
+  </aside>
+
+  <div id="toast-root" class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(100%-2rem,22rem)] flex-col gap-2" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    if (!window.DemoAuth.require()) return;
+
+    const id = Number(new URLSearchParams(location.search).get("id"));
+    let chart;
+
+    function getPaciente(state) {
+      return state.pacientes.find(function (p) {
+        return p.id === id;
+      });
+    }
+
+    function fillEditForm(paciente) {
+      document.getElementById("edit-nome").value = paciente.nome;
+      document.getElementById("edit-email").value = paciente.email;
+      document.getElementById("edit-telefone").value = paciente.telefone || "";
+      const qSel = document.getElementById("edit-queixa");
+      if (!qSel.options.length) {
+        window.DEMO_SEED.QUEIXA_CHOICES.forEach(function (pair) {
+          const o = document.createElement("option");
+          o.value = pair[0];
+          o.textContent = pair[1];
+          qSel.appendChild(o);
+        });
+      }
+      qSel.value = paciente.queixa;
+      document.getElementById("pagamento_em_dia").value = paciente.pagamento_em_dia
+        ? "ativo"
+        : "inativo";
+    }
+
+    function render() {
+      const state = window.DemoStore.get();
+      const paciente = getPaciente(state);
+      const root = document.getElementById("app");
+      if (!paciente) {
+        root.innerHTML =
+          '<p class="text-sm text-muted">Paciente não encontrado. <a class="text-brand-700 font-semibold" href="pacientes.html">Voltar</a></p>';
+        return;
+      }
+      document.title = paciente.nome + " — PsycoManager";
+      fillEditForm(paciente);
+
+      const consultas = state.consultas
+        .filter(function (c) {
+          return c.paciente_id === id;
+        })
+        .sort(function (a, b) {
+          return new Date(b.data) - new Date(a.data);
+        });
+
+      const pagBadge = paciente.pagamento_em_dia
+        ? '<span class="badge bg-brand-50 text-brand-700"><span class="size-1.5 rounded-full bg-brand-500"></span> Pagamento em dia</span>'
+        : '<span class="badge bg-red-50 text-red-700"><span class="size-1.5 rounded-full bg-red-500"></span> Pagamento pendente</span>';
+
+      const tarefasHtml = state.tarefas.length
+        ? '<ul class="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-lg bg-white p-2 ring-1 ring-inset ring-line">' +
+          state.tarefas
+            .map(function (t) {
+              return (
+                '<li><label class="checkbox-row"><input type="checkbox" name="tarefas" value="' +
+                t.id +
+                '" class="checkbox-field"><span class="min-w-0"><span class="block text-sm font-medium text-ink">' +
+                t.tarefa +
+                '</span><span class="block text-xs text-muted">' +
+                window.DemoFmt.freq(t.frequencia) +
+                "</span></span></label></li>"
+              );
+            })
+            .join("") +
+          "</ul>"
+        : '<p class="mt-2 rounded-lg bg-surface px-3 py-4 text-center text-xs text-muted ring-1 ring-inset ring-line">Nenhuma tarefa ainda.</p>';
+
+      const histHtml = consultas.length
+        ? '<ul role="list" class="mt-4 divide-y divide-line rounded-xl bg-white ring-1 ring-line">' +
+          consultas
+            .map(function (c) {
+              const link = window.DemoFmt.publicLink(c.id);
+              const locked = !paciente.pagamento_em_dia;
+              return (
+                '<li class="flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">' +
+                '<div class="min-w-0"><div class="flex flex-wrap items-center gap-x-2.5 gap-y-1">' +
+                '<span class="size-2 shrink-0 rounded-full ' +
+                (c.humor >= 3 ? "bg-brand-500" : "bg-red-500") +
+                '"></span>' +
+                '<p class="text-sm font-semibold text-ink">' +
+                window.DemoFmt.dateTime(c.data) +
+                '</p><span class="text-xs tabular-nums text-muted">Humor ' +
+                c.humor +
+                "/5</span>" +
+                (c.video
+                  ? '<span class="badge bg-surface text-muted ring-1 ring-inset ring-line">Vídeo</span>'
+                  : "") +
+                '</div><div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-4 text-xs text-muted">' +
+                (locked
+                  ? '<span class="text-red-600">Link bloqueado (pagamento pendente)</span>'
+                  : '<a href="' +
+                    link +
+                    '" target="_blank" rel="noopener" class="font-medium text-brand-700 hover:underline">Abrir</a>' +
+                    '<button type="button" class="font-medium text-brand-700 hover:underline cursor-pointer" data-copy="' +
+                    link +
+                    '">Copiar link</button>') +
+                "<span>" +
+                c.views_total +
+                " visualizações</span></div></div>" +
+                '<button type="button" data-excluir="' +
+                c.id +
+                '" class="text-xs font-medium text-red-600 transition hover:text-red-700 cursor-pointer sm:shrink-0">Excluir</button></li>'
+              );
+            })
+            .join("") +
+          "</ul>"
+        : '<div class="mt-4 px-4 py-12 text-center"><p class="text-sm font-medium text-ink">Ainda sem consultas</p><p class="mt-1 text-sm text-muted">Registe a primeira sessão no formulário ao lado.</p></div>';
+
+      root.innerHTML =
+        '<a href="pacientes.html" class="btn-ghost -ml-3 cursor-pointer">' +
+        '<svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" /></svg> Pacientes</a>' +
+        '<div class="mt-4 flex flex-col gap-5 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">' +
+        '<div class="flex items-start gap-4"><img class="size-16 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm sm:size-[4.5rem]" src="' +
+        paciente.foto +
+        '" alt=""><div class="min-w-0"><h1 class="text-2xl font-semibold tracking-tight text-ink">' +
+        paciente.nome +
+        '</h1><p class="mt-1 text-sm text-muted">' +
+        window.DemoFmt.queixa(paciente.queixa) +
+        " · " +
+        paciente.email +
+        (paciente.telefone ? " · " + paciente.telefone : "") +
+        '</p><div class="mt-3 flex flex-wrap gap-2"><span class="badge bg-white text-ink ring-1 ring-inset ring-line">' +
+        consultas.length +
+        (consultas.length === 1 ? " sessão" : " sessões") +
+        "</span>" +
+        pagBadge +
+        '</div></div></div><button type="button" id="btn-editar-paciente" class="btn-secondary cursor-pointer sm:shrink-0">Editar paciente</button></div>' +
+        '<div class="mt-8 grid gap-10 lg:grid-cols-12 lg:gap-12"><section class="lg:col-span-5">' +
+        '<h2 class="text-base font-semibold text-ink">Registrar consulta</h2>' +
+        '<p class="mt-0.5 text-sm text-muted">Humor, notas, vídeo (opcional) e exercícios.</p>' +
+        '<form id="form-consulta" class="mt-5 space-y-5">' +
+        '<div><div class="flex items-center justify-between"><label class="text-sm font-medium text-ink">Humor do paciente</label>' +
+        '<span id="humor-valor" class="text-sm font-semibold tabular-nums text-brand-700">3</span></div>' +
+        '<input type="range" name="humor" id="humor" min="1" max="5" value="3" class="sr-only">' +
+        '<div class="mt-3 grid grid-cols-5 gap-2" role="group" aria-label="Escala de humor">' +
+        [1, 2, 3, 4, 5]
+          .map(function (n) {
+            return (
+              '<button type="button" data-humor="' +
+              n +
+              '" class="humor-btn flex h-11 items-center justify-center rounded-lg text-sm font-semibold ring-1 ring-inset transition">' +
+              n +
+              "</button>"
+            );
+          })
+          .join("") +
+        '</div><div class="mt-1.5 flex justify-between text-xs text-muted"><span>Baixo</span><span>Alto</span></div></div>' +
+        '<div><label for="registro_geral" class="block text-sm font-medium text-ink">Registro geral</label>' +
+        '<textarea id="registro_geral" rows="4" placeholder="Notas clínicas da sessão…" class="input-field mt-1.5"></textarea></div>' +
+        '<div><label class="block text-sm font-medium text-ink">Gravação <span class="font-normal text-muted">(simulado)</span></label>' +
+        '<label class="mt-1.5 flex cursor-pointer items-center gap-2 rounded-lg bg-white px-3 py-3 text-sm ring-1 ring-inset ring-line">' +
+        '<input type="checkbox" id="tem-video" class="checkbox-field"> Marcar como tendo vídeo</label></div>' +
+        '<div><div class="flex items-center justify-between gap-2"><span class="block text-sm font-medium text-ink">Exercícios</span>' +
+        '<a href="tarefas.html" class="text-xs font-medium text-brand-700 hover:underline">Gerir tarefas</a></div>' +
+        '<p class="mt-0.5 text-xs text-muted">Selecione as tarefas para esta sessão.</p>' +
+        tarefasHtml +
+        '</div><button type="submit" class="btn-primary w-full cursor-pointer">Registrar consulta</button></form></section>' +
+        '<section class="lg:col-span-7 space-y-8"><div><h2 class="text-base font-semibold text-ink">Histórico</h2>' +
+        '<p class="mt-0.5 text-sm text-muted">Sessões registadas e links públicos.</p>' +
+        histHtml +
+        "</div>" +
+        (consultas.length
+          ? '<div><h2 class="text-base font-semibold text-ink">Evolução do humor</h2><div class="mt-3 h-56 rounded-xl bg-white px-3 py-4 ring-1 ring-line sm:h-64"><canvas id="humorChart"></canvas></div></div>'
+          : "") +
+        "</section></div>";
+
+      // Wire humor
+      const humorInput = document.getElementById("humor");
+      const humorValor = document.getElementById("humor-valor");
+      const btns = document.querySelectorAll(".humor-btn");
+      function syncHumor(val) {
+        const n = String(val);
+        humorInput.value = n;
+        humorValor.textContent = n;
+        btns.forEach(function (btn) {
+          const active = btn.dataset.humor === n;
+          btn.classList.toggle("bg-brand-600", active);
+          btn.classList.toggle("text-white", active);
+          btn.classList.toggle("ring-brand-600", active);
+          btn.classList.toggle("bg-white", !active);
+          btn.classList.toggle("text-ink", !active);
+          btn.classList.toggle("ring-line", !active);
+          btn.classList.toggle("hover:bg-surface", !active);
+        });
+      }
+      btns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          syncHumor(btn.dataset.humor);
+        });
+      });
+      syncHumor(3);
+
+      document.getElementById("btn-editar-paciente").addEventListener("click", function () {
+        window.DemoUI.openDrawer(
+          document.getElementById("drawer-editar"),
+          document.getElementById("drawer-edit-overlay")
+        );
+      });
+
+      document.querySelectorAll("[data-copy]").forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+          try {
+            await navigator.clipboard.writeText(btn.getAttribute("data-copy") || "");
+            window.showToast("Link copiado", "success");
+          } catch (_) {
+            window.showToast("Não foi possível copiar o link", "error");
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-excluir]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          if (!confirm("Excluir esta consulta?")) return;
+          const cid = Number(btn.getAttribute("data-excluir"));
+          window.DemoStore.update(function (s) {
+            s.consultas = s.consultas.filter(function (c) {
+              return c.id !== cid;
+            });
+          });
+          window.showToast("Consulta excluída", "success");
+          render();
+        });
+      });
+
+      document.getElementById("form-consulta").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const humor = Number(document.getElementById("humor").value);
+        const registro = document.getElementById("registro_geral").value.trim();
+        const video = document.getElementById("tem-video").checked;
+        const tarefas = Array.from(
+          document.querySelectorAll('input[name="tarefas"]:checked')
+        ).map(function (el) {
+          return Number(el.value);
+        });
+        window.DemoStore.update(function (s) {
+          const nid = s.nextIds.consulta++;
+          s.consultas.push({
+            id: nid,
+            paciente_id: id,
+            humor: humor,
+            registro_geral: registro,
+            data: new Date().toISOString(),
+            video: video,
+            tarefas: tarefas,
+            views_total: 0,
+            views_unicas: 0,
+          });
+        });
+        window.showToast("Consulta registada (só nesta demo)", "success");
+        render();
+      });
+
+      if (consultas.length && typeof Chart !== "undefined") {
+        const ordered = consultas.slice().reverse();
+        const ctx = document.getElementById("humorChart");
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: ordered.map(function (c) {
+              return window.DemoFmt.dateShort(c.data);
+            }),
+            datasets: [
+              {
+                label: "Humor",
+                data: ordered.map(function (c) {
+                  return c.humor;
+                }),
+                borderColor: "#1f7a6f",
+                backgroundColor: "rgba(42, 157, 143, 0.1)",
+                fill: true,
+                tension: 0.35,
+                pointRadius: 4,
+                pointBackgroundColor: "#2a9d8f",
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                min: 1,
+                max: 5,
+                ticks: { stepSize: 1, color: "#5a6b69", font: { size: 11 } },
+                grid: { color: "#e2ebe8" },
+                border: { display: false },
+              },
+              x: {
+                ticks: { color: "#5a6b69", font: { size: 11 } },
+                grid: { display: false },
+                border: { display: false },
+              },
+            },
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
+    }
+
+    window.DemoUI.wireDrawer({
+      drawerId: "drawer-editar",
+      overlayId: "drawer-edit-overlay",
+      openerIds: [],
+      closerId: "btn-fechar-editar",
+    });
+
+    document.getElementById("form-editar").addEventListener("submit", function (e) {
+      e.preventDefault();
+      window.DemoStore.update(function (s) {
+        const p = getPaciente(s);
+        if (!p) return;
+        p.nome = document.getElementById("edit-nome").value.trim();
+        p.email = document.getElementById("edit-email").value.trim();
+        p.telefone = document.getElementById("edit-telefone").value.trim() || null;
+        p.queixa = document.getElementById("edit-queixa").value;
+        p.pagamento_em_dia =
+          document.getElementById("pagamento_em_dia").value === "ativo";
+      });
+      window.DemoUI.closeDrawer(
+        document.getElementById("drawer-editar"),
+        document.getElementById("drawer-edit-overlay")
+      );
+      window.showToast("Paciente atualizado", "success");
+      render();
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>

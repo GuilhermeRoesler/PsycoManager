@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pacientes — PsycoManager</title>
+  <meta name="theme-color" content="#1f7a6f">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <script src="js/styles.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/common.js"></script>
+</head>
+<body class="antialiased">
+  <header class="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur-md">
+    <nav class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6" aria-label="Principal">
+      <div class="flex items-center gap-8">
+        <a href="pacientes.html" class="flex items-center gap-2.5">
+          <img src="assets/img/logo.png" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
+          <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
+        </a>
+        <div class="flex items-center gap-1">
+          <a href="pacientes.html" class="rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700">Pacientes</a>
+          <a href="tarefas.html" class="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted transition hover:bg-surface hover:text-ink">Tarefas</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span class="hidden text-sm text-muted sm:inline truncate max-w-[10rem]">demo</span>
+        <button type="button" id="btn-sair" class="btn-ghost">Sair</button>
+        <button type="button" id="btn-abrir-cadastro" class="btn-primary cursor-pointer shrink-0" aria-label="Novo paciente">
+          <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+          <span class="hidden sm:inline">Novo paciente</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight text-ink">Pacientes</h1>
+        <p class="mt-1 text-sm text-muted" id="subtitulo">—</p>
+      </div>
+
+      <form id="form-filtros" class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center" role="search">
+        <div class="relative flex-1">
+          <svg class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" /></svg>
+          <input type="search" id="filtro-busca" placeholder="Buscar por nome, email ou queixa…" class="input-field with-icon-left" autocomplete="off">
+        </div>
+        <select id="filtro-pagamento" class="input-field sm:w-44">
+          <option value="">Pagamento: todos</option>
+          <option value="em_dia">Em dia</option>
+          <option value="pendente">Pendente</option>
+        </select>
+        <select id="filtro-queixa" class="input-field sm:w-48">
+          <option value="">Queixa: todas</option>
+        </select>
+      </form>
+
+      <div id="lista-wrap" class="mt-4"></div>
+    </div>
+  </main>
+
+  <div id="drawer-overlay" class="fixed inset-0 z-50 hidden bg-ink/30 backdrop-blur-[2px]" aria-hidden="true"></div>
+  <aside id="drawer-cadastro" class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" role="dialog" aria-labelledby="drawer-titulo" aria-modal="true">
+    <div class="flex items-center justify-between border-b border-line px-5 py-4">
+      <div>
+        <h2 id="drawer-titulo" class="text-base font-semibold text-ink">Novo paciente</h2>
+        <p class="text-xs text-muted">Dados básicos para iniciar o acompanhamento</p>
+      </div>
+      <button type="button" id="btn-fechar-cadastro" class="btn-ghost -mr-2 cursor-pointer" aria-label="Fechar">
+        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
+      </button>
+    </div>
+    <form id="form-cadastro" class="flex flex-1 flex-col overflow-y-auto">
+      <div class="flex-1 space-y-4 px-5 py-5">
+        <div>
+          <label for="nome" class="block text-sm font-medium text-ink">Nome</label>
+          <input type="text" name="nome" id="nome" required autocomplete="name" class="input-field mt-1.5">
+        </div>
+        <div>
+          <label for="email" class="block text-sm font-medium text-ink">Email</label>
+          <input type="email" name="email" id="email" required autocomplete="email" class="input-field mt-1.5">
+        </div>
+        <div>
+          <label for="telefone" class="block text-sm font-medium text-ink">Telefone</label>
+          <input type="text" name="telefone" id="telefone" autocomplete="tel" class="input-field mt-1.5">
+        </div>
+        <div>
+          <label for="queixa" class="block text-sm font-medium text-ink">Queixa</label>
+          <select name="queixa" id="queixa" required class="input-field mt-1.5">
+            <option value="" disabled selected>Selecionar</option>
+          </select>
+        </div>
+        <div>
+          <label for="foto" class="block text-sm font-medium text-ink">Foto</label>
+          <div class="mt-1.5 rounded-lg bg-surface px-3 py-3 ring-1 ring-inset ring-line">
+            <input type="file" name="foto" id="foto" accept="image/*" class="file-field">
+          </div>
+          <p class="mt-1.5 text-xs text-muted">Opcional nesta demo — gera-se um avatar automático.</p>
+        </div>
+      </div>
+      <div class="border-t border-line px-5 py-4">
+        <button type="submit" class="btn-primary w-full cursor-pointer">Cadastrar paciente</button>
+      </div>
+    </form>
+  </aside>
+
+  <div id="toast-root" class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(100%-2rem,22rem)] flex-col gap-2" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    if (!window.DemoAuth.require()) return;
+
+    const seed = window.DEMO_SEED;
+    const queixaSelect = document.getElementById("filtro-queixa");
+    const cadastroQueixa = document.getElementById("queixa");
+    seed.QUEIXA_CHOICES.forEach(function (pair) {
+      const o1 = document.createElement("option");
+      o1.value = pair[0];
+      o1.textContent = pair[1];
+      queixaSelect.appendChild(o1);
+      const o2 = document.createElement("option");
+      o2.value = pair[0];
+      o2.textContent = pair[1];
+      cadastroQueixa.appendChild(o2);
+    });
+
+    window.DemoUI.wireDrawer({
+      drawerId: "drawer-cadastro",
+      overlayId: "drawer-overlay",
+      openerIds: ["btn-abrir-cadastro", "btn-abrir-cadastro-empty"],
+      closerId: "btn-fechar-cadastro",
+      focusId: "nome",
+    });
+
+    function filtered() {
+      const state = window.DemoStore.get();
+      const q = (document.getElementById("filtro-busca").value || "").trim().toLowerCase();
+      const pag = document.getElementById("filtro-pagamento").value;
+      const queixa = document.getElementById("filtro-queixa").value;
+      return state.pacientes.filter(function (p) {
+        if (pag === "em_dia" && !p.pagamento_em_dia) return false;
+        if (pag === "pendente" && p.pagamento_em_dia) return false;
+        if (queixa && p.queixa !== queixa) return false;
+        if (!q) return true;
+        const hay =
+          (p.nome + " " + p.email + " " + window.DemoFmt.queixa(p.queixa)).toLowerCase();
+        return hay.indexOf(q) !== -1;
+      });
+    }
+
+    function render() {
+      const state = window.DemoStore.get();
+      const list = filtered();
+      const totalAll = state.pacientes.length;
+      const filtrosAtivos =
+        document.getElementById("filtro-busca").value ||
+        document.getElementById("filtro-pagamento").value ||
+        document.getElementById("filtro-queixa").value;
+      const sub = document.getElementById("subtitulo");
+      const wrap = document.getElementById("lista-wrap");
+
+      if (!totalAll) {
+        sub.textContent = "Nenhum paciente cadastrado";
+        wrap.innerHTML =
+          '<div class="mt-10 flex flex-col items-center justify-center px-6 py-20 text-center">' +
+          '<h2 class="mt-4 text-base font-semibold text-ink">Comece pelo primeiro paciente</h2>' +
+          '<p class="mt-1 max-w-sm text-sm text-muted">Cadastre um paciente para registar sessões, humor e exercícios.</p>' +
+          '<button type="button" id="btn-abrir-cadastro-empty" class="btn-primary mt-6 cursor-pointer">Novo paciente</button></div>';
+        const emptyBtn = document.getElementById("btn-abrir-cadastro-empty");
+        if (emptyBtn) {
+          emptyBtn.addEventListener("click", function () {
+            window.DemoUI.openDrawer(
+              document.getElementById("drawer-cadastro"),
+              document.getElementById("drawer-overlay")
+            );
+          });
+        }
+        return;
+      }
+
+      if (filtrosAtivos) {
+        sub.textContent = list.length + (list.length === 1 ? " resultado" : " resultados");
+      } else {
+        sub.textContent = totalAll + (totalAll === 1 ? " paciente" : " pacientes");
+      }
+
+      if (!list.length) {
+        wrap.innerHTML =
+          '<div class="mt-4 rounded-xl bg-white px-5 py-12 text-center ring-1 ring-line">' +
+          '<p class="text-sm font-medium text-ink">Nenhum paciente corresponde aos filtros</p>' +
+          '<p class="mt-1 text-sm text-muted">Ajuste a busca ou limpe os filtros.</p>' +
+          '<button type="button" id="btn-limpar" class="btn-secondary mt-5 inline-flex">Limpar filtros</button></div>';
+        document.getElementById("btn-limpar").addEventListener("click", function () {
+          document.getElementById("filtro-busca").value = "";
+          document.getElementById("filtro-pagamento").value = "";
+          document.getElementById("filtro-queixa").value = "";
+          document.getElementById("filtro-pagamento").dispatchEvent(new Event("change"));
+          render();
+        });
+        return;
+      }
+
+      wrap.innerHTML =
+        '<div class="overflow-hidden rounded-xl bg-white ring-1 ring-line"><ul role="list" class="divide-y divide-line">' +
+        list
+          .map(function (p) {
+            const badge = p.pagamento_em_dia
+              ? '<span class="badge bg-brand-50 text-brand-700"><span class="size-1.5 rounded-full bg-brand-500"></span> Em dia</span>'
+              : '<span class="badge bg-red-50 text-red-700"><span class="size-1.5 rounded-full bg-red-500"></span> Pendente</span>';
+            return (
+              '<li><a href="paciente.html?id=' +
+              p.id +
+              '" class="flex items-center gap-3 px-4 py-3 transition hover:bg-surface/80 sm:gap-4 sm:px-5">' +
+              '<img class="size-10 shrink-0 rounded-full object-cover ring-1 ring-line" src="' +
+              p.foto +
+              '" alt="">' +
+              '<div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">' +
+              '<p class="truncate text-sm font-semibold text-ink">' +
+              p.nome +
+              '</p><span class="badge bg-surface text-muted ring-1 ring-inset ring-line">' +
+              window.DemoFmt.queixa(p.queixa) +
+              "</span></div>" +
+              '<p class="mt-0.5 truncate text-xs text-muted">' +
+              p.email +
+              (p.telefone ? " · " + p.telefone : "") +
+              "</p></div>" +
+              '<div class="hidden shrink-0 sm:block">' +
+              badge +
+              "</div>" +
+              '<svg class="size-4 shrink-0 text-line" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" /></svg>' +
+              "</a></li>"
+            );
+          })
+          .join("") +
+        "</ul></div>";
+    }
+
+    let timer;
+    document.getElementById("filtro-busca").addEventListener("input", function () {
+      clearTimeout(timer);
+      timer = setTimeout(render, 200);
+    });
+    ["filtro-pagamento", "filtro-queixa"].forEach(function (id) {
+      document.getElementById(id).addEventListener("change", render);
+    });
+
+    document.getElementById("form-cadastro").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const nome = document.getElementById("nome").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const telefone = document.getElementById("telefone").value.trim();
+      const queixa = document.getElementById("queixa").value;
+      if (!nome || !email || !queixa) {
+        window.showToast("Preencha nome, email e queixa", "error");
+        return;
+      }
+      window.DemoStore.update(function (state) {
+        const id = state.nextIds.paciente++;
+        state.pacientes.push({
+          id: id,
+          nome: nome,
+          email: email,
+          telefone: telefone || null,
+          queixa: queixa,
+          pagamento_em_dia: true,
+          foto:
+            "https://ui-avatars.com/api/?name=" +
+            encodeURIComponent(nome) +
+            "&background=2a9d8f&color=fff&size=128&bold=true",
+        });
+      });
+      window.DemoUI.closeDrawer(
+        document.getElementById("drawer-cadastro"),
+        document.getElementById("drawer-overlay")
+      );
+      e.target.reset();
+      window.showToast("Paciente cadastrado (só nesta demo)", "success");
+      render();
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>

@@ -4,6 +4,16 @@ O **PsycoManager** é um sistema web desenvolvido em Django para auxiliar psicó
 
 ![](images/demo.png)
 
+## Demo rápida (GitHub Pages)
+
+Pré-visualização **estática** da interface (sem Django): navegue, filtre pacientes, registe consultas e abra o link público — tudo em memória no browser.
+
+**[Abrir demo ao vivo](https://guilhermeroesler.github.io/PsycoManager/)** · credenciais sugeridas: `demo` / `demo123`
+
+> Não substitui a app real: sem autenticação verdadeira, uploads nem persistência no servidor. Para o backend completo, siga a instalação abaixo.
+
+Para ativar no repositório: **Settings → Pages → Deploy from a branch** → branch `main`, pasta `/docs`.
+
 ## 🚀 Funcionalidades
 
 ### Gestão de Pacientes
@@ -97,6 +107,7 @@ python manage.py createsuperuser
 - `pacientes/`: Aplicação principal contendo a lógica de views, modelos e templates.
 - `templates/`: Arquivos HTML base.
 - `media/`: Diretório onde são salvos os uploads (fotos de perfil e vídeos das consultas).
+- `docs/`: Demo estática para GitHub Pages (HTML/JS, sem Django).
 
 ## 📄 Licença
 

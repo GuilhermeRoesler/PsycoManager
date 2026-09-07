@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — PsycoManager</title>
+  <meta name="theme-color" content="#1f7a6f">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <script src="js/styles.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/common.js"></script>
+</head>
+<body class="antialiased">
+  <header class="border-b border-line bg-white/90 backdrop-blur-md">
+    <nav class="mx-auto flex h-14 max-w-6xl items-center px-4 sm:px-6" aria-label="Principal">
+      <a href="entrar.html" class="flex items-center gap-2.5">
+        <img src="assets/img/logo.png" alt="" width="32" height="32" class="size-8 rounded-lg shadow-sm ring-1 ring-brand-700/10" decoding="async">
+        <span class="font-display text-lg font-semibold tracking-tight text-ink">PsycoManager</span>
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-md flex-col justify-center px-4 py-12 sm:px-6">
+      <div class="mb-8 text-center">
+        <h1 class="font-display text-3xl font-semibold tracking-tight text-ink">Entrar</h1>
+        <p class="mt-2 text-sm text-muted">Aceda à sua área de pacientes</p>
+      </div>
+
+      <div class="mb-6 rounded-xl bg-brand-50 px-4 py-3.5 ring-1 ring-inset ring-brand-200">
+        <p class="text-xs font-semibold uppercase tracking-wider text-brand-700">Conta demo</p>
+        <p class="mt-1 text-sm text-brand-700/90">
+          Explore os dados de demonstração com
+          <span class="font-semibold text-ink" id="demo-user">demo</span>
+          /
+          <span class="font-semibold text-ink" id="demo-pass">demo123</span>
+        </p>
+        <button type="button" id="usar-demo" class="btn-secondary mt-3 w-full !bg-white !py-2 text-sm">
+          Preencher conta demo
+        </button>
+      </div>
+
+      <form id="form-login" class="space-y-4">
+        <div>
+          <label for="username" class="block text-xs font-medium text-muted">Utilizador</label>
+          <input type="text" name="username" id="username" autocomplete="username" required class="input-field mt-1" placeholder="seu.utilizador">
+        </div>
+        <div>
+          <label for="password" class="block text-xs font-medium text-muted">Palavra-passe</label>
+          <input type="password" name="password" id="password" autocomplete="current-password" required class="input-field mt-1" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-primary w-full">Entrar</button>
+      </form>
+
+      <p class="mt-8 text-center text-sm text-muted">
+        Ainda não tem conta?
+        <button type="button" id="btn-criar-conta" class="font-semibold text-brand-700 hover:text-brand-600">Criar conta</button>
+      </p>
+    </div>
+  </main>
+
+  <div id="toast-root" class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(100%-2rem,22rem)] flex-col gap-2" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    if (window.DemoAuth.isLoggedIn()) {
+      location.replace("pacientes.html");
+      return;
+    }
+    const seed = window.DEMO_SEED;
+    document.getElementById("demo-user").textContent = seed.DEMO_USERNAME;
+    document.getElementById("demo-pass").textContent = seed.DEMO_PASSWORD;
+
+    document.getElementById("usar-demo").addEventListener("click", function () {
+      document.getElementById("username").value = seed.DEMO_USERNAME;
+      document.getElementById("password").value = seed.DEMO_PASSWORD;
+      document.getElementById("username").focus();
+    });
+
+    document.getElementById("btn-criar-conta").addEventListener("click", function () {
+      window.showToast("Nesta demo estática o registo está desativado — use a conta demo.", "error");
+    });
+
+    document.getElementById("form-login").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value;
+      if (!user || !pass) {
+        window.showToast("Preencha utilizador e palavra-passe", "error");
+        return;
+      }
+      // Qualquer credencial funciona; conta demo é a sugerida.
+      window.DemoAuth.login();
+      location.href = "pacientes.html";
+    });
+  })();
+  </script>
+</body>
+</html>
